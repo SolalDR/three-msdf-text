@@ -11,7 +11,7 @@ import tsconfig from './tsconfig.json';
 
 const production = !process.env.ROLLUP_WATCH;
 
-const input = 'src/main.ts';
+const input = 'src/index.ts';
 
 function resolveEntries() {
   return Object.entries(
