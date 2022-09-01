@@ -1,13 +1,13 @@
-# rollup-typescript-starter-lib
+# three-msdf-text
 
-[![test](https://github.com/solaldr/rollup-typescript-starter-lib/workflows/test/badge.svg?branch=master)](https://github.com/solaldr/rollup-typescript-starter-lib/actions?workflow=test)
-[![build](https://github.com/solaldr/rollup-typescript-starter-lib/workflows/build/badge.svg?branch=master)](https://github.com/solaldr/rollup-typescript-starter-lib/actions?workflow=build)
-[![version](https://img.shields.io/github/package-json/v/solaldr/rollup-typescript-starter-lib)](https://github.com/solaldr/rollup-typescript-starter-lib)
+[![test](https://github.com/SolalDR/three-msdf-text/workflows/test/badge.svg?branch=master)](https://github.com/SolalDR/three-msdf-text/actions?workflow=test)
+[![build](https://github.com/SolalDR/three-msdf-text/workflows/build/badge.svg?branch=master)](https://github.com/SolalDR/three-msdf-text/actions?workflow=build)
+[![version](https://img.shields.io/github/package-json/v/SolalDR/three-msdf-text)](https://github.com/SolalDR/three-msdf-text)
 
 Library starter based on rollup and typescript. <br>
 Inspired by <a href="https://github.com/juliendargelos/rollup-library">https://github.com/juliendargelos/rollup-library</a>
 
-<sub>[![Use this template](https://img.shields.io/badge/-Use%20this%20template-brightgreen)](https://github.com/solaldr/rollup-typescript-starter-lib/generate)</sub>
+<sub>[![Use this template](https://img.shields.io/badge/-Use%20this%20template-brightgreen)](https://github.com/SolalDR/three-msdf-text/generate)</sub>
 
 ## How to contribute
 

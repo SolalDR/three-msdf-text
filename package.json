@@ -1,6 +1,6 @@
 {
-  "name": "rollup-typescript-starter-lib",
-  "repository": "solaldr/rollup-typescript-starter-lib",
+  "name": "three-msdf-text",
+  "repository": "SolalDR/three-msdf-text",
   "version": "0.0.0",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
