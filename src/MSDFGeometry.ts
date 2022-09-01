@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { MSDFFont } from './msdf.font'
+import { MSDFFont } from './MSDFFont'
 import { newline, whitespace } from './regexp'
 
 function getKernPairOffset(font, id1, id2) {
@@ -63,7 +63,7 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     this.lineHeight = lineHeight
     this.wordSpacing = wordSpacing
     this.wordBreak = wordBreak
-    this.textScale = this.size / this.font.common.baseline
+    this.textScale = this.size / (this.font.common.baseline || this.font.common.base)
 
     this.generateGeometry()
   }
@@ -74,26 +74,24 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     const numChars = chars.length
 
     // Create output buffers
-    const buffers = {
-      position: new Float32Array(numChars * 4 * 3),
-      uv: new Float32Array(numChars * 4 * 2),
-      id: new Float32Array(numChars * 4),
-      index: new Uint16Array(numChars * 6),
-    }
-
     this.setAttribute('position', new THREE.BufferAttribute(new Float32Array(numChars * 4 * 3), 3))
     this.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(numChars * 4 * 2), 2))
     this.setAttribute('id', new THREE.BufferAttribute(new Float32Array(numChars * 4), 1))
-    this.setAttribute('index', new THREE.BufferAttribute(new Float32Array(numChars * 4), 1))
+
+    const indexArray = new Uint32Array(numChars * 6);
 
     // Set values for buffers that don't require calculation
     for (let i = 0; i < numChars; i++) {
-      buffers.id.set([i, i, i, i], i * 4)
-      buffers.index.set(
+      ;(this.attributes.id.array as Float32Array).set([i, i, i, i], i * 4)
+      indexArray.set(
         [i * 4, i * 4 + 2, i * 4 + 1, i * 4 + 1, i * 4 + 2, i * 4 + 3],
         i * 6,
       )
     }
+
+
+    this.setIndex(Array.from(indexArray))
+
 
     this.generateLayout()
   }
@@ -142,21 +140,24 @@ export class MSDFGeometry extends THREE.BufferGeometry {
 
       const glyph = this.font.glyphs[char] || this.font.glyphs[' ']
 
+      if (!glyph) {
+        throw new Error(`Missing glyph "${char}"`)
+      }
+
       // Find any applicable kern pairs
-      if (line.glyphs.length) {
+      if (line.glyphs.length && glyph) {
         const prevGlyph = line.glyphs[line.glyphs.length - 1][0]
-        const kern = getKernPairOffset(this.font, glyph.id, prevGlyph.id) * this.textScale
+        const kern = getKernPairOffset(this.font.data, glyph.id || 0, prevGlyph.id) * this.textScale
         line.width += kern
         wordWidth += kern
       }
 
-      // add char to line
+      // // add char to line
       line.glyphs.push([glyph, line.width])
-
-      // calculate advance for next glyph
+      // // calculate advance for next glyph
       let advance = 0
 
-      // If whitespace, update location of current word for line breaks
+      // // If whitespace, update location of current word for line breaks
       if (whitespace.test(char)) {
         wordCursor = cursor
         wordWidth = 0
@@ -211,10 +212,8 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     // For all fonts tested, a little offset was needed to be right on the baseline, hence 0.07.
     let y = 0.07 * this.size
     let j = 0
-
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex]
-
       for (let i = 0; i < line.glyphs.length; i++) {
         const glyph = line.glyphs[i][0]
         let x = line.glyphs[i][1]

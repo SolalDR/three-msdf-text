@@ -1,8 +1,10 @@
 export class MSDFFont {
-  font = {}
+  data = {}
   glyphs = {}
+  common = {}
   constructor(font) {
-    this.font = font
+    this.data = font
+    this.common = font.common
     font.chars.forEach((d) => (this.glyphs[d.char] = d));
   }
 }
