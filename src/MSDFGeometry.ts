@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import { MSDFFont } from './MSDFFont'
+import { Box3 } from 'three'
+import { Font } from './Font'
 import { newline, whitespace } from './regexp'
 
 function getKernPairOffset(font, id1, id2) {
@@ -14,8 +15,40 @@ function getKernPairOffset(font, id1, id2) {
   return 0
 }
 
-interface MSDFGeometryOptions {
-  font?: MSDFFont
+type Char = {
+  glyph: Glyph
+  x: number
+  y: number
+  lineIndex: number
+  lineCharIndex: number
+}
+
+type Glyph = {
+  id: number
+  char: string
+  xoffset: number
+  yoffset: number
+  width: number
+  height: number
+  x: number
+  y: number
+  xadvance: number
+}
+
+type Line = {
+  index: number
+  width: number
+  chars: Char[]
+}
+
+interface GeometryFactoryOptions {
+  uv?: boolean
+  position?: boolean
+  charPosition?: boolean
+  charUv?: boolean
+}
+export interface MSDFGeometryOptions {
+  font?: Font
   text?: string
   width?: number
   align?: string
@@ -24,7 +57,8 @@ interface MSDFGeometryOptions {
   lineHeight?: number
   wordSpacing?: number
   wordBreak?: boolean
-  
+  useUv?: boolean
+  usecharPosition?: boolean
 }
 
 export class MSDFGeometry extends THREE.BufferGeometry {
@@ -52,6 +86,8 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     lineHeight = 1.4,
     wordSpacing = 0,
     wordBreak = false,
+    useUv = true,
+    usecharPosition = true,
   }: MSDFGeometryOptions = {}) {
     super()
     this.font = font
@@ -63,22 +99,52 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     this.lineHeight = lineHeight
     this.wordSpacing = wordSpacing
     this.wordBreak = wordBreak
-    this.textScale = this.size / (this.font.common.baseline || this.font.common.base)
+    this.textScale =
+      this.size / (this.font.common.baseline || this.font.common.base)
 
-    this.generateGeometry()
+    this.generateGeometry({
+      uv: useUv,
+      position: true,
+      charUv: true,
+      charPosition: usecharPosition,
+    })
   }
 
-  private generateGeometry() {
+  private generateGeometry({
+    uv = true,
+    position = true,
+    charUv = true,
+    charPosition = true,
+  }: GeometryFactoryOptions = {}) {
     // Strip spaces and newlines to get actual character length for buffers
     const chars = this.text.replace(/[ \n]/g, '')
     const numChars = chars.length
 
     // Create output buffers
-    this.setAttribute('position', new THREE.BufferAttribute(new Float32Array(numChars * 4 * 3), 3))
-    this.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(numChars * 4 * 2), 2))
-    this.setAttribute('id', new THREE.BufferAttribute(new Float32Array(numChars * 4), 1))
+    this.setAttribute(
+      'position',
+      new THREE.BufferAttribute(new Float32Array(numChars * 4 * 3), 3),
+    )
+    this.setAttribute(
+      'charUv',
+      new THREE.BufferAttribute(new Float32Array(numChars * 4 * 2), 2),
+    )
+    if (charPosition)
+      this.setAttribute(
+        'charPosition',
+        new THREE.BufferAttribute(new Float32Array(numChars * 4 * 3), 3),
+      )
+    if (uv)
+      this.setAttribute(
+        'uv',
+        new THREE.BufferAttribute(new Float32Array(numChars * 4 * 2), 2),
+      )
+    this.setAttribute(
+      'id',
+      new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+    )
 
-    const indexArray = new Uint32Array(numChars * 6);
+    const indexArray = new Uint32Array(numChars * 6)
 
     // Set values for buffers that don't require calculation
     for (let i = 0; i < numChars; i++) {
@@ -89,26 +155,28 @@ export class MSDFGeometry extends THREE.BufferGeometry {
       )
     }
 
+    if (uv) {
+      this.boundingBox = new THREE.Box3()
+    }
 
     this.setIndex(Array.from(indexArray))
-
 
     this.generateLayout()
   }
 
   generateLayout() {
     const lines = []
-
     let cursor = 0
 
     let wordCursor = 0
     let wordWidth = 0
     let line = newLine()
 
-    function newLine() {
+    function newLine(): Line {
       const line = {
+        index: lines.length,
         width: 0,
-        glyphs: [],
+        chars: [],
       }
       lines.push(line)
       wordCursor = cursor
@@ -138,22 +206,30 @@ export class MSDFGeometry extends THREE.BufferGeometry {
         continue
       }
 
-      const glyph = this.font.glyphs[char] || this.font.glyphs[' ']
+      const glyph: Glyph = this.font.glyphs[char] || this.font.glyphs[' ']
 
       if (!glyph) {
         throw new Error(`Missing glyph "${char}"`)
       }
 
       // Find any applicable kern pairs
-      if (line.glyphs.length && glyph) {
-        const prevGlyph = line.glyphs[line.glyphs.length - 1][0]
-        const kern = getKernPairOffset(this.font.data, glyph.id || 0, prevGlyph.id) * this.textScale
+      if (line.chars.length && glyph) {
+        const prevGlyph = line.chars[line.chars.length - 1].glyph
+        const kern =
+          getKernPairOffset(this.font.data, glyph.id || 0, prevGlyph.id) *
+          this.textScale
         line.width += kern
         wordWidth += kern
       }
 
       // // add char to line
-      line.glyphs.push([glyph, line.width])
+      line.chars.push({
+        glyph,
+        x: line.width,
+        y: 0,
+        lineIndex: line.index,
+        lineCharIndex: line.chars.length,
+      })
       // // calculate advance for next glyph
       let advance = 0
 
@@ -177,16 +253,16 @@ export class MSDFGeometry extends THREE.BufferGeometry {
       // If width defined
       if (line.width > this.width) {
         // If can break words, undo latest glyph if line not empty and create new line
-        if (this.wordBreak && line.glyphs.length > 1) {
+        if (this.wordBreak && line.chars.length > 1) {
           line.width -= advance
-          line.glyphs.pop()
+          line.chars.pop()
           line = newLine()
           continue
 
           // If not first word, undo current word and cursor and create new line
         } else if (!this.wordBreak && wordWidth !== line.width) {
           const numGlyphs = cursor - wordCursor + 1
-          line.glyphs.splice(-numGlyphs, numGlyphs)
+          line.chars.splice(-numGlyphs, numGlyphs)
           cursor = wordCursor
           line.width -= wordWidth
           line = newLine()
@@ -202,21 +278,29 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     // Remove last line if empty
     if (!line.width) lines.pop()
 
+    this.lineCount = lines.length
+    this.computedHeight = this.lineCount * this.size * this.lineHeight
+    this.computedWidth = Math.max(...lines.map(line => line.width))
+
     this.populateBuffers(lines)
   }
 
-  populateBuffers(lines) {
+  populateBuffers(lines: Line[]) {
     const texW = this.font.common.scaleW
     const texH = this.font.common.scaleH
 
+    const cH = this.computedHeight
+    const cW = this.computedWidth
+
     // For all fonts tested, a little offset was needed to be right on the baseline, hence 0.07.
-    let y = 0.07 * this.size
+    let y = 0.07 * this.size,
+      x = 0
     let j = 0
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex]
-      for (let i = 0; i < line.glyphs.length; i++) {
-        const glyph = line.glyphs[i][0]
-        let x = line.glyphs[i][1]
+      for (let i = 0; i < line.chars.length; i++) {
+        const glyph = line.chars[i].glyph
+        x = line.chars[i].x
 
         if (this.align === 'center') {
           x -= line.width * 0.5
@@ -239,11 +323,41 @@ export class MSDFGeometry extends THREE.BufferGeometry {
           j * 4 * 3,
         )
 
+        if (this.attributes.charPosition) {
+          ;(this.attributes.charPosition.array as Float32Array).set(
+            [x, y - h, 0, x, y, 0, x + w, y - h, 0, x + w, y, 0],
+            j * 4 * 3,
+          )
+        }
+
+        if (this.attributes.uv) {
+          ;(this.attributes.uv.array as Float32Array).set(
+            [
+              x / cW,
+              1 - (y - h) / -cH,
+              x / cW,
+              1 - y / -cH,
+              (x + w) / cW,
+              1 - (y - h) / -cH,
+              (x + w) / cW,
+              1 - y / -cH,
+            ],
+            j * 4 * 2,
+          )
+        }
+
         const u = glyph.x / texW
         const uw = glyph.width / texW
         const v = 1.0 - glyph.y / texH
         const vh = glyph.height / texH
-        ;(this.attributes.uv.array as Float32Array).set([u, v - vh, u, v, u + uw, v - vh, u + uw, v], j * 4 * 2)
+        ;(this.attributes.charUv.array as Float32Array).set(
+          [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
+          j * 4 * 2,
+        )
+        ;(this.attributes.charPosition.array as Float32Array).set(
+          [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
+          j * 4 * 3,
+        )
 
         // Reset cursor to baseline
         y += glyph.yoffset * this.textScale
@@ -253,21 +367,17 @@ export class MSDFGeometry extends THREE.BufferGeometry {
 
       y -= this.size * this.lineHeight
     }
-
-    this.lineCount = lines.length
-    this.computedHeight = this.lineCount * this.size * this.lineHeight
-    this.computedWidth = Math.max(...lines.map(line => line.width))
   }
 
   // Update buffers to layout with new layout
   resize(width: number) {
-    this.width = width;
+    this.width = width
     this.generateGeometry()
   }
 
   // Completely change text (like creating new Text)
   updateText(text) {
-    this.text = text;
+    this.text = text
     this.generateGeometry()
   }
 }

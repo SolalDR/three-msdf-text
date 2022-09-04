@@ -1,4 +1,4 @@
-export class MSDFFont {
+export class Font {
   data = {}
   glyphs = {}
   common = {}
