@@ -1,5 +1,5 @@
 uniform sampler2D uAtlas;
-varying vec2 vcharUv;
+varying vec2 vCharUv;
 void main() {
   
   #include <msdftest_fragment>

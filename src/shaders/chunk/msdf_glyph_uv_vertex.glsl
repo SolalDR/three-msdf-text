@@ -1,3 +1,3 @@
 #ifdef USE_MSDF_GEOMETRY
-  vcharUv = charUv;
+  vCharUv = charUv;
 #endif

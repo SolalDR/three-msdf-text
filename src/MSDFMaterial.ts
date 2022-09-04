@@ -1,6 +1,6 @@
 import './shaders/chunk'
 
-import { ShaderLib, Shader, MeshBasicMaterialParameters, WebGLRenderer } from 'three'; 
+import { ShaderLib, Shader, MeshBasicMaterialParameters, WebGLRenderer, Color } from 'three'; 
 
 Object.keys(ShaderLib).forEach(shaderName => {
   const shaderDef = ShaderLib[shaderName];
@@ -27,20 +27,46 @@ Object.keys(ShaderLib).forEach(shaderName => {
 })
 
 interface MSDFMaterialOptions extends MeshBasicMaterialParameters {
-  atlas: THREE.Texture
+  atlas?: THREE.Texture
+  threshold?: number
+  stroke?: boolean
+  strokeInnerWidth?: number
+  strokeOuterWidth?: number
 }
 
-export function extendMaterial(material, { atlas }: MSDFMaterialOptions) {
+export function extendMaterial(material, { 
+  atlas, 
+  threshold,
+  stroke, 
+  strokeInnerWidth = 0.5, 
+  strokeOuterWidth = 0.0,
+}: MSDFMaterialOptions = {}) {
   const state = {
     userCallback: null,
-    msdfCallback: (shader : Shader, renderer: WebGLRenderer) => {
-      if (!(shader as any).defines) (shader as any).defines = {}
-      if (!shader.uniforms) shader.uniforms = {} as any
+    msdfCallback: (shader: Shader, renderer: WebGLRenderer) => {
+      const s = shader as any
+      if (!s.defines) s.defines = {}
+      if (!s.uniforms) s.uniforms = {} as any
 
-      (shader as any).defines.USE_MSDF_GEOMETRY = ''
-      shader.uniforms.uAtlas = { value: atlas }
+      const USE_THRESHOLD = threshold !== undefined
+      const USE_STROKE = !!stroke;
 
-      console.log(shader);
+      s.defines.USE_MSDF_GEOMETRY = ''
+      s.uniforms.uAtlas = { value: atlas }
+
+      if (USE_THRESHOLD) {
+        s.defines.USE_THRESHOLD = ''
+        s.uniforms.uThreshold = { value: threshold || 0.0 }
+      }
+
+      if (USE_STROKE) {
+        s.defines.USE_STROKE = ''
+        s.uniforms.uStrokeOuterWidth = { value: strokeOuterWidth }
+        s.uniforms.uStrokeInnerWidth = { value: strokeInnerWidth }
+      }
+
+      console.log(s.uniforms)
+
       if (state.userCallback) state.userCallback(shader, renderer)
     },
   }

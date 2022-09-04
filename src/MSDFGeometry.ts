@@ -46,6 +46,7 @@ interface GeometryFactoryOptions {
   position?: boolean
   charPosition?: boolean
   charUv?: boolean
+  index?: boolean
 }
 export interface MSDFGeometryOptions {
   font?: Font
@@ -106,6 +107,7 @@ export class MSDFGeometry extends THREE.BufferGeometry {
       uv: useUv,
       position: true,
       charUv: true,
+      index: true,
       charPosition: usecharPosition,
     })
   }
@@ -114,6 +116,7 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     uv = true,
     position = true,
     charUv = true,
+    index = true,
     charPosition = true,
   }: GeometryFactoryOptions = {}) {
     // Strip spaces and newlines to get actual character length for buffers
@@ -139,6 +142,22 @@ export class MSDFGeometry extends THREE.BufferGeometry {
         'uv',
         new THREE.BufferAttribute(new Float32Array(numChars * 4 * 2), 2),
       )
+
+    if (index) {
+      this.setAttribute(
+        'charIndex',
+        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+      )
+      this.setAttribute(
+        'charIndex',
+        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+      )
+      this.setAttribute(
+        'lineCharIndex',
+        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+      )
+    }
+
     this.setAttribute(
       'id',
       new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),

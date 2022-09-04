@@ -29,26 +29,16 @@ async function init() {
   // const material = new MSDFMaterial({ atlas: texture });
   let material = extendMaterial(new MeshBasicMaterial({
     color: 0xFFFFFF,
-    opacity: 0.5,
+    opacity: 1,
     transparent: true,
     side: THREE.DoubleSide,
     map: map
   }), {
-    atlas: texture
+    atlas: texture,
+    stroke: true,
+    // strokeInnerWidth: 5.0
   })
 
-  // material.onBeforeCompile = (shader) => {
-  //   console.log(shader)
-  // }
-
-  // material = new MSDFBasicMaterial({
-  //   color: 0xFF0000,
-  //   opacity: 0.5,
-  //   transparent: true,
-  //   side: THREE.DoubleSide
-  // })
-
-  console.log(geometry, material);
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.y = 10
   mesh.position.x = -10

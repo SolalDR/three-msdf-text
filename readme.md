@@ -4,10 +4,13 @@
 [![build](https://github.com/SolalDR/three-msdf-text/workflows/build/badge.svg?branch=master)](https://github.com/SolalDR/three-msdf-text/actions?workflow=build)
 [![version](https://img.shields.io/github/package-json/v/SolalDR/three-msdf-text)](https://github.com/SolalDR/three-msdf-text)
 
-Library starter based on rollup and typescript. <br>
-Inspired by <a href="https://github.com/juliendargelos/rollup-library">https://github.com/juliendargelos/rollup-library</a>
+Provide geometry and material for MSDF (multi-channel signed distance fields).<br>
 
-<sub>[![Use this template](https://img.shields.io/badge/-Use%20this%20template-brightgreen)](https://github.com/SolalDR/three-msdf-text/generate)</sub>
+Features: 
+- [x] Geometry with multiple attributes
+- [x] Native support of all THREE.js Material
+- [x] Typescript support
+- [x] 
 
 ## How to contribute
 
