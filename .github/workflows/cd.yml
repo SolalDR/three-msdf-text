@@ -26,7 +26,7 @@ jobs:
           folder: public
           target-folder: public
           single-commit: true
-      # - name: Publish to npm
-      #   uses: luvies/action-yarn-publish@v0.1.1
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NODE_TOKEN }}
+      - name: Publish to npm
+        uses: luvies/action-yarn-publish@v0.1.1
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_TOKEN }}
