@@ -1,23 +1,21 @@
-name: build
+name: Build
 
 on:
-  pull_request:
+  workflow_dispatch:
   push:
     branches:
-    - master
+      - develop
 
 jobs:
-  build:
-    name: Build
+  deploy:
+    name: Deploy
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v1
-    - name: Use node
-      uses: actions/setup-node@v1
-      with:
-        node-version: 12.x
-    - name: Install
-      run: npm install
-    - name: Build
-      run: npm run build
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Install Node
+        uses: actions/setup-node@v3
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build

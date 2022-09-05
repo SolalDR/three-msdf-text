@@ -1,5 +1,5 @@
 {
-  "name": "three-msdf-text",
+  "name": "@solaldr/three-msdf-text",
   "repository": "SolalDR/three-msdf-text",
   "version": "0.0.1",
   "main": "dist/index.js",
