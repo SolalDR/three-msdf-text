@@ -1,4 +1,10 @@
 .DS_Store
 node_modules
-dist
+
+public/
+tmp/
+resources/
+*.lock
+*.log
+*.tmp
 .cache

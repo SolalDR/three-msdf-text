@@ -1,0 +1,32 @@
+name: CD
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Install Node
+        uses: actions/setup-node@v3
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
+      - uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: public
+          target-folder: public
+          single-commit: true
+      # - name: Publish to npm
+      #   uses: luvies/action-yarn-publish@v0.1.1
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NODE_TOKEN }}

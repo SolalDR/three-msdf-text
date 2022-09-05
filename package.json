@@ -1,13 +1,14 @@
 {
-  "name": "three-msdf-text",
+  "name": "@solaldr/three-msdf-text",
   "repository": "SolalDR/three-msdf-text",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "browser": "dist/index.umd.js",
   "devDependencies": {
     "@rollup/plugin-alias": "^3.1.1",
     "@rollup/plugin-commonjs": "^17.1.0",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^11.0.1",
     "@rollup/plugin-typescript": "^8.1.0",
     "@tsconfig/recommended": "^1.0.1",
@@ -20,20 +21,29 @@
     "prettier": "^1.19.1",
     "rollup": "^2.77.1",
     "rollup-plugin-filesize": "^9.1.0",
+    "rollup-plugin-glslify": "^1.3.0",
     "rollup-plugin-node-resolve": "^4.0.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-serve": "^2.0.1",
     "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-ts": "^1.3.7",
-    "typescript": "^4.1.3"
+    "rollup-plugin-ts": "^3.0.2",
+    "typescript": "^4.1.3",
+    "rollup-plugin-copy": "^3.4.0",
+    "typedoc": "^0.23.14"
+  },
+  "peerDependencies": {
+    "@types/three": "^0.143.2",
+    "three": "^0.143.0"
   },
   "scripts": {
     "commit": "npm run format && cz",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "build": "rollup -c",
+    "build": "rollup -c && npm run docs",
     "dev": "rollup -c -w",
     "test": "node test/test.js",
     "pretest": "npm run build",
-    "deploy": "npm run build && npm publish"
+    "deploy": "npm run build && npm publish",
+    "docs": "typedoc src/index.ts"
   },
   "files": [
     "dist"

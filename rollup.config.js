@@ -5,13 +5,16 @@ import resolve from '@rollup/plugin-node-resolve';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import filesize from 'rollup-plugin-filesize';
-
 import pkg from './package.json';
+import glslify from 'rollup-plugin-glslify';
+import json from '@rollup/plugin-json';
 import tsconfig from './tsconfig.json';
+import serve from 'rollup-plugin-serve';
+import copy from 'rollup-plugin-copy'
 
 const production = !process.env.ROLLUP_WATCH;
 
-const input = 'src/main.ts';
+const input = 'src/index.ts';
 
 function resolveEntries() {
   return Object.entries(
@@ -29,8 +32,10 @@ export default [
       { file: pkg.module, format: 'es' },
     ],
     plugins: [
+      glslify(),
       external(),
       ts(),
+      
       alias({
         resolve: ['.ts', '.tsx'],
         entries: resolveEntries(),
@@ -45,6 +50,7 @@ export default [
     input,
     output: { file: pkg.browser, name: 'Loader', format: 'umd' },
     plugins: [
+      glslify(),
       external(),
       ts(),
       alias({
@@ -60,13 +66,15 @@ export default [
     ],
 	},
 	{
-		input: 'example/src/index.js',
+		input: 'demo/src/index.js',
 		output: {
 			name: 'howLongUntilLunch',
-			file: 'example/dist/index.js',
+			file: 'public/demo/index.js',
 			format: 'umd'
 		},
 		plugins: [
+      glslify(),
+      json(),
       external(),
       ts(),
       alias({
@@ -79,6 +87,12 @@ export default [
       }),
       terser(),
       production && filesize(),
+      copy({
+        targets: [
+          { src: 'demo/static/**/*', dest: 'public/demo/' }
+        ]
+      }),
+      // serve(''),
 			//resolve(), // so Rollup can find `ms`
 			//commonjs() // so Rollup can convert `ms` to an ES module
 		]
