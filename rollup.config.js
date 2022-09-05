@@ -10,6 +10,7 @@ import glslify from 'rollup-plugin-glslify';
 import json from '@rollup/plugin-json';
 import tsconfig from './tsconfig.json';
 import serve from 'rollup-plugin-serve';
+import copy from 'rollup-plugin-copy'
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -24,51 +25,51 @@ function resolveEntries() {
 console.log(input, pkg, tsconfig)
 
 export default [
-  // {
-  //   input,
-  //   output: [
-  //     { file: pkg.main, format: 'cjs' },
-  //     { file: pkg.module, format: 'es' },
-  //   ],
-  //   plugins: [
-  //     glslify(),
-  //     external(),
-  //     ts(),
+  {
+    input,
+    output: [
+      { file: pkg.main, format: 'cjs' },
+      { file: pkg.module, format: 'es' },
+    ],
+    plugins: [
+      glslify(),
+      external(),
+      ts(),
       
-  //     alias({
-  //       resolve: ['.ts', '.tsx'],
-  //       entries: resolveEntries(),
-  //     }),
-  //     commonjs({
-  //       include: ['node_modules/**'],
-  //     }),
-  //     production && filesize(),
-  //   ],
-  // },
-  // {
-  //   input,
-  //   output: { file: pkg.browser, name: 'Loader', format: 'umd' },
-  //   plugins: [
-  //     glslify(),
-  //     external(),
-  //     ts(),
-  //     alias({
-  //       resolve: ['.ts', '.tsx'],
-  //       entries: resolveEntries(),
-  //     }),
-  //     resolve(),
-  //     commonjs({
-  //       include: ['node_modules/**'],
-  //     }),
-  //     terser(),
-  //     production && filesize(),
-  //   ],
-	// },
+      alias({
+        resolve: ['.ts', '.tsx'],
+        entries: resolveEntries(),
+      }),
+      commonjs({
+        include: ['node_modules/**'],
+      }),
+      production && filesize(),
+    ],
+  },
+  {
+    input,
+    output: { file: pkg.browser, name: 'Loader', format: 'umd' },
+    plugins: [
+      glslify(),
+      external(),
+      ts(),
+      alias({
+        resolve: ['.ts', '.tsx'],
+        entries: resolveEntries(),
+      }),
+      resolve(),
+      commonjs({
+        include: ['node_modules/**'],
+      }),
+      terser(),
+      production && filesize(),
+    ],
+	},
 	{
-		input: 'example/src/index.js',
+		input: 'demo/src/index.js',
 		output: {
 			name: 'howLongUntilLunch',
-			file: 'example/dist/index.js',
+			file: 'public/demo/index.js',
 			format: 'umd'
 		},
 		plugins: [
@@ -86,7 +87,12 @@ export default [
       }),
       terser(),
       production && filesize(),
-      serve('example')
+      copy({
+        targets: [
+          { src: 'demo/static/**/*', dest: 'public/demo/' }
+        ]
+      }),
+      // serve(''),
 			//resolve(), // so Rollup can find `ms`
 			//commonjs() // so Rollup can convert `ms` to an ES module
 		]

@@ -1,3 +1,5 @@
-export { MSDFGeometry } from './MSDFGeometry'
-// export { MSDFBasicMaterial, MSDFStandardMaterial } from './MSDFMaterial'
-export { Font } from './Font';
+import { MSDFGeometry } from './MSDFGeometry';
+import { Font } from './Font';
+import { extendMaterial } from './MSDFMaterial';
+
+export { Font, MSDFGeometry, extendMaterial }

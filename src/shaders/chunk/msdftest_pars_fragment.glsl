@@ -5,5 +5,8 @@
   #ifdef USE_STROKE
     uniform float uStrokeOuterWidth;
     uniform float uStrokeInnerWidth;
+  #else 
+    float uStrokeOuterWidth = 0.0;
+    float uStrokeInnerWidth = 1.0;
   #endif
 #endif

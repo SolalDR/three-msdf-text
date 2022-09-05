@@ -1,0 +1,11 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "exclude": [
+    "demo/*"
+  ],
+  "excludeExternals": true,
+  "excludeProtected": true,
+  "excludePrivate": true,
+  "media": "media",
+  "out": "public/docs"
+}

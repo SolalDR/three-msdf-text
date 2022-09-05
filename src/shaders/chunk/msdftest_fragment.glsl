@@ -17,12 +17,12 @@ vec3 uStrokeColor = vec3(1.0, 0.0, 0.0);
   float msdfD = fwidth(signedDist);
 
   #ifdef USE_THRESHOLD
-    float msdfAlpha = smoothstep(uThreshold - SQRT2DIV2, uThreshold + SQRT2DIV2, signedDist);
+    float msdfTest = smoothstep(uThreshold - SQRT2DIV2, uThreshold + SQRT2DIV2, signedDist);
   #else
-    float msdfAlpha = smoothstep(-msdfD, msdfD, signedDist);
+    float msdfTest = smoothstep(-msdfD, msdfD, signedDist);
   #endif
 
-  if (msdfAlpha < 0.01) discard;
+  if (msdfTest < 0.01) discard;
 
 
   // Outset
@@ -32,26 +32,21 @@ vec3 uStrokeColor = vec3(1.0, 0.0, 0.0);
 
 
   #ifdef USE_THRESHOLD
-      float outset = smoothstep(uThreshold - SQRT2DIV2, uThreshold + SQRT2DIV2, signedDistOutset);  
-      float inset = 1.0;
+      float outerAlpha = smoothstep(uThreshold - SQRT2DIV2, uThreshold + SQRT2DIV2, signedDistOutset);  
+      float innerAlpha = 1.0;
       
       #ifdef USE_STROKE 
-        inset -= smoothstep(uThreshold - SQRT2DIV2, uThreshold + SQRT2DIV2, signedDistInset);
+        innerAlpha -= smoothstep(uThreshold - SQRT2DIV2, uThreshold + SQRT2DIV2, signedDistInset);
       #endif
       
   #else
-      float outset = clamp(signedDistOutset / fwidth(signedDistOutset) + 0.5, 0.0, 1.0);
-      float inset = 1.0;
+      float outerAlpha = clamp(signedDistOutset / fwidth(signedDistOutset) + 0.5, 0.0, 1.0);
+      float innerAlpha = 1.0;
       
       #ifdef USE_STROKE 
-        inset -= clamp(signedDistInset / fwidth(signedDistInset) + 0.5, 0.0, 1.0);
+        innerAlpha -= clamp(signedDistInset / fwidth(signedDistInset) + 0.5, 0.0, 1.0);
       #endif
   #endif
 
-  // Border
-  float border = outset * inset;
-
-
-  diffuseColor.a *= opacity * border;
-
+  diffuseColor.a *= outerAlpha * innerAlpha;
 #endif

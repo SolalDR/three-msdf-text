@@ -9,8 +9,8 @@ async function init() {
   const scene = new THREE.Scene();
 
   const loader = new THREE.TextureLoader();
-  const texture = await loader.loadAsync('/dist/font/font.png')
-  const map = await loader.loadAsync('/dist/uv_test.jpeg')
+  const texture = await loader.loadAsync('./font/font.png')
+  const map = await loader.loadAsync('./img/uv_test.jpeg')
 
   const font = new Font(fontsData);
 
@@ -29,13 +29,13 @@ async function init() {
   // const material = new MSDFMaterial({ atlas: texture });
   let material = extendMaterial(new MeshBasicMaterial({
     color: 0xFFFFFF,
-    opacity: 1,
+    opacity: 0.5,
     transparent: true,
     side: THREE.DoubleSide,
     map: map
   }), {
     atlas: texture,
-    stroke: true,
+    // stroke: true,
     // strokeInnerWidth: 5.0
   })
 

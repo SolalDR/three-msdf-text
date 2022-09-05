@@ -26,7 +26,7 @@ Object.keys(ShaderLib).forEach(shaderName => {
   )
 })
 
-interface MSDFMaterialOptions extends MeshBasicMaterialParameters {
+export interface MSDFMaterialOptions extends MeshBasicMaterialParameters {
   atlas?: THREE.Texture
   threshold?: number
   stroke?: boolean
@@ -34,7 +34,7 @@ interface MSDFMaterialOptions extends MeshBasicMaterialParameters {
   strokeOuterWidth?: number
 }
 
-export function extendMaterial(material, { 
+export function extendMaterial(material: THREE.Material, { 
   atlas, 
   threshold,
   stroke, 
@@ -83,16 +83,3 @@ export function extendMaterial(material, {
 
   return material;
 }
-// export class MSDFBasicMaterial extends MeshBasicMaterial {
-//   constructor(args: MSDFMaterialOptions) {
-//     super(args)
-//     extendMaterial(this, args)
-//   }
-// }
-
-// export class MSDFStandardMaterial extends MeshStandardMaterial {
-//   constructor(args: MSDFMaterialOptions) {
-//     super(args)
-//     extendMaterial(this, args)
-//   }
-// }

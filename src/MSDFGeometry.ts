@@ -41,7 +41,7 @@ type Line = {
   chars: Char[]
 }
 
-interface GeometryFactoryOptions {
+export interface GeometryFactoryOptions {
   uv?: boolean
   position?: boolean
   charPosition?: boolean
@@ -52,7 +52,8 @@ export interface MSDFGeometryOptions {
   font?: Font
   text?: string
   width?: number
-  align?: string
+  alignX?: string
+  alignY?: string
   size?: number
   letterSpacing?: number
   lineHeight?: number
@@ -66,7 +67,8 @@ export class MSDFGeometry extends THREE.BufferGeometry {
   font: any
   text: string
   width: number
-  align: string
+  alignX: string
+  alignY: string
   size: number
   letterSpacing: number
   lineHeight: number
@@ -81,7 +83,8 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     font,
     text,
     width = Infinity,
-    align = 'left',
+    alignX = 'left',
+    alignY = 'top',
     size = 1,
     letterSpacing = 0,
     lineHeight = 1.4,
@@ -94,7 +97,8 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     this.font = font
     this.text = text
     this.width = width
-    this.align = align
+    this.alignX = alignX
+    this.alignY = alignY
     this.size = size
     this.letterSpacing = letterSpacing
     this.lineHeight = lineHeight
@@ -312,18 +316,25 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     const cW = this.computedWidth
 
     // For all fonts tested, a little offset was needed to be right on the baseline, hence 0.07.
-    let y = 0.07 * this.size,
-      x = 0
+    let y = 0.07 * this.size, x = 0;
+
+    if (this.alignY === 'center') {
+      y += this.computedHeight / 2
+    } else if (this.alignY === 'bottom') {
+      y += this.computedHeight
+    }
+
     let j = 0
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex]
+      
       for (let i = 0; i < line.chars.length; i++) {
         const glyph = line.chars[i].glyph
         x = line.chars[i].x
 
-        if (this.align === 'center') {
+        if (this.alignX === 'center') {
           x -= line.width * 0.5
-        } else if (this.align === 'right') {
+        } else if (this.alignX === 'right') {
           x -= line.width
         }
 
