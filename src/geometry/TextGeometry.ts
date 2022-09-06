@@ -1,55 +1,23 @@
 import * as THREE from 'three'
-import { Box3 } from 'three'
-import { Font } from './Font'
-import { newline, whitespace } from './regexp'
+import { Line } from './types'
+import { Font, FontChar, FontDefinition } from '../font'
+import { newline, whitespace } from '../utils/regexp'
+import { getKernPairOffset } from './getKernPairOffset'
 
-function getKernPairOffset(font, id1, id2) {
-  for (let i = 0; i < font.kernings.length; i++) {
-    const k = font.kernings[i]
-    if (k.first < id1) continue
-    if (k.second < id2) continue
-    if (k.first > id1) return 0
-    if (k.first === id1 && k.second > id2) return 0
-    return k.amount
-  }
-  return 0
-}
-
-type Char = {
-  glyph: Glyph
-  x: number
-  y: number
-  lineIndex: number
-  lineCharIndex: number
-}
-
-type Glyph = {
-  id: number
-  char: string
-  xoffset: number
-  yoffset: number
-  width: number
-  height: number
-  x: number
-  y: number
-  xadvance: number
-}
-
-type Line = {
-  index: number
-  width: number
-  chars: Char[]
-}
-
-export interface GeometryFactoryOptions {
+export interface ExtraAttributeOptions {
   uv?: boolean
-  position?: boolean
   charPosition?: boolean
-  charUv?: boolean
-  index?: boolean
+  lineIndex?: boolean
+  charIndex?: boolean
+  wordIndex?: boolean
+  lineCharIndex?: boolean
+  lineWordIndex?: boolean
+  lineWordCount?: boolean
+  lineCharCount?: boolean
 }
-export interface MSDFGeometryOptions {
-  font?: Font
+
+export interface TextGeometryOptions extends ExtraAttributeOptions {
+  font?: Font | FontDefinition
   text?: string
   width?: number
   alignX?: string
@@ -59,12 +27,10 @@ export interface MSDFGeometryOptions {
   lineHeight?: number
   wordSpacing?: number
   wordBreak?: boolean
-  useUv?: boolean
-  usecharPosition?: boolean
 }
 
-export class MSDFGeometry extends THREE.BufferGeometry {
-  font: any
+export class TextGeometry extends THREE.BufferGeometry {
+  font: Font
   text: string
   width: number
   alignX: string
@@ -90,11 +56,18 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     lineHeight = 1.4,
     wordSpacing = 0,
     wordBreak = false,
-    useUv = true,
-    usecharPosition = true,
-  }: MSDFGeometryOptions = {}) {
+    uv = false,
+    charPosition = false,
+    lineIndex = false,
+    charIndex = false,
+    wordIndex = false,
+    lineCharIndex = false,
+    lineWordIndex = false,
+    lineWordCount = false,
+    lineCharCount = false,
+  }: TextGeometryOptions = {}) {
     super()
-    this.font = font
+    this.font = font instanceof Font ? font : new Font(font)
     this.text = text
     this.width = width
     this.alignX = alignX
@@ -107,22 +80,30 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     this.textScale =
       this.size / (this.font.common.baseline || this.font.common.base)
 
-    this.generateGeometry({
-      uv: useUv,
-      position: true,
-      charUv: true,
-      index: true,
-      charPosition: usecharPosition,
+    this.computeGeometry({
+      uv,
+      charPosition,
+      lineIndex,
+      charIndex,
+      wordIndex,
+      lineCharIndex,
+      lineWordIndex,
+      lineWordCount,
+      lineCharCount,
     })
   }
 
-  private generateGeometry({
-    uv = true,
-    position = true,
-    charUv = true,
-    index = true,
-    charPosition = true,
-  }: GeometryFactoryOptions = {}) {
+  private computeGeometry({
+    uv,
+    charPosition,
+    lineIndex,
+    charIndex,
+    wordIndex,
+    lineCharIndex,
+    lineWordIndex,
+    lineWordCount,
+    lineCharCount
+  }: ExtraAttributeOptions = {}) {
     // Strip spaces and newlines to get actual character length for buffers
     const chars = this.text.replace(/[ \n]/g, '')
     const numChars = chars.length
@@ -147,17 +128,51 @@ export class MSDFGeometry extends THREE.BufferGeometry {
         new THREE.BufferAttribute(new Float32Array(numChars * 4 * 2), 2),
       )
 
-    if (index) {
+    if (lineIndex) {
+      this.setAttribute(
+        'lineIndex',
+        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+      )
+    }
+
+    if (charIndex) {
       this.setAttribute(
         'charIndex',
         new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
       )
+    }
+
+    if (wordIndex) {
       this.setAttribute(
-        'charIndex',
+        'wordIndex',
         new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
       )
+    }
+
+    if (lineCharIndex) {
       this.setAttribute(
         'lineCharIndex',
+        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+      )
+    }
+
+    if (lineWordIndex) {
+      this.setAttribute(
+        'lineWordIndex',
+        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+      )
+    }
+
+    if (lineWordCount) {
+      this.setAttribute(
+        'lineWordCount',
+        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+      )
+    }
+
+    if (lineCharCount) {
+      this.setAttribute(
+        'lineCharCount',
         new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
@@ -184,10 +199,10 @@ export class MSDFGeometry extends THREE.BufferGeometry {
 
     this.setIndex(Array.from(indexArray))
 
-    this.generateLayout()
+    this.computeLayout()
   }
 
-  generateLayout() {
+  computeLayout() {
     const lines = []
     let cursor = 0
 
@@ -229,17 +244,18 @@ export class MSDFGeometry extends THREE.BufferGeometry {
         continue
       }
 
-      const glyph: Glyph = this.font.glyphs[char] || this.font.glyphs[' ']
+      const charDef: FontChar =
+        this.font.indexedChar[char] || this.font.indexedChar[' ']
 
-      if (!glyph) {
+      if (!charDef) {
         throw new Error(`Missing glyph "${char}"`)
       }
 
       // Find any applicable kern pairs
-      if (line.chars.length && glyph) {
-        const prevGlyph = line.chars[line.chars.length - 1].glyph
+      if (line.chars.length && charDef) {
+        const prevGlyph = line.chars[line.chars.length - 1].definition
         const kern =
-          getKernPairOffset(this.font.data, glyph.id || 0, prevGlyph.id) *
+          getKernPairOffset(this.font, charDef.id || 0, prevGlyph.id) *
           this.textScale
         line.width += kern
         wordWidth += kern
@@ -247,7 +263,7 @@ export class MSDFGeometry extends THREE.BufferGeometry {
 
       // // add char to line
       line.chars.push({
-        glyph,
+        definition: charDef,
         x: line.width,
         y: 0,
         lineIndex: line.index,
@@ -268,7 +284,7 @@ export class MSDFGeometry extends THREE.BufferGeometry {
         advance += this.letterSpacing * this.size
       }
 
-      advance += glyph.xadvance * this.textScale
+      advance += charDef.xadvance * this.textScale
 
       line.width += advance
       wordWidth += advance
@@ -316,7 +332,8 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     const cW = this.computedWidth
 
     // For all fonts tested, a little offset was needed to be right on the baseline, hence 0.07.
-    let y = 0.07 * this.size, x = 0;
+    let y = 0.07 * this.size,
+      x = 0
 
     if (this.alignY === 'center') {
       y += this.computedHeight / 2
@@ -327,9 +344,9 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     let j = 0
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex]
-      
+
       for (let i = 0; i < line.chars.length; i++) {
-        const glyph = line.chars[i].glyph
+        const glyph = line.chars[i].definition
         x = line.chars[i].x
 
         if (this.alignX === 'center') {
@@ -399,15 +416,20 @@ export class MSDFGeometry extends THREE.BufferGeometry {
     }
   }
 
-  // Update buffers to layout with new layout
+  /**
+   * Update buffers with new layout
+   */
   resize(width: number) {
     this.width = width
-    this.generateGeometry()
+    this.computeGeometry()
   }
 
-  // Completely change text (like creating new Text)
+  /**
+   * Update text and re-compute geometry (like creating new Text)
+   */
+
   updateText(text) {
     this.text = text
-    this.generateGeometry()
+    this.computeGeometry()
   }
 }
