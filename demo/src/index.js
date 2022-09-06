@@ -1,5 +1,6 @@
-import { Font, TextGeometry, extendMSDFMaterial } from '../../src/index'
+import * as THREE from 'three'
 import fontsData from './font/font.json';
+import { Font, TextGeometry, extendMSDFMaterial } from '../../src/index'
 
 async function init() {
   const canvas = document.querySelector('#canvas');
@@ -13,12 +14,12 @@ async function init() {
 
   console.time()
   const geometry = new TextGeometry({
-    font,
+    font: font,
     text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc a ante turpis. Aliquam diam urna, malesuada vel nibh vel, cursus dapibus risus. Suspendisse eu odio risus. Aenean id purus vitae purus pretium accumsan id elementum odio. Mauris elit odio, condimentum id massa in, lobortis hendrerit metus. In non tellus vitae ipsum eleifend facilisis vel vel sapien. Proin sed metus euismod, ornare velit semper, tempus quam. Sed pellentesque volutpat sapien, nec scelerisque risus volutpat at.",
     width: 15,
     size: 1,
     align: 'left',
-    useUv: true,
+    uv: true,
     lineHeight: 1
   })
   console.timeEnd()
@@ -32,14 +33,11 @@ async function init() {
     map: map
   }), {
     atlas: texture,
-    // stroke: true,
-    // strokeInnerWidth: 5.0
   })
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.y = 10
   mesh.position.x = -10
-
 
   const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
   camera.position.set(0, 0, 15)

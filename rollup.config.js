@@ -85,16 +85,13 @@ export default [
       commonjs({
         include: ['node_modules/**'],
       }),
-      terser(),
       production && filesize(),
       copy({
         targets: [
           { src: 'demo/static/**/*', dest: 'public/demo/' }
         ]
       }),
-      // serve(''),
-			//resolve(), // so Rollup can find `ms`
-			//commonjs() // so Rollup can convert `ms` to an ES module
+      !production && serve('')
 		]
 	},
 ];
