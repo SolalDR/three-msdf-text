@@ -1,10 +1,11 @@
 {
   "name": "@solaldr/three-msdf-text",
   "repository": "SolalDR/three-msdf-text",
-  "version": "0.0.4",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
-  "browser": "dist/index.umd.js",
+  "version": "0.0.5",
+  "main": "build/index.js",
+  "module": "build/index.esm.js",
+  "browser": "build/index.umd.js",
+  "types": "build/index.d.ts",
   "devDependencies": {
     "@rollup/plugin-alias": "^3.1.1",
     "@rollup/plugin-commonjs": "^17.1.0",
@@ -46,7 +47,7 @@
     "docs": "typedoc src/index.ts"
   },
   "files": [
-    "dist"
+    "build"
   ],
   "config": {
     "commitizen": {

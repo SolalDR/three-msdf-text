@@ -1,8 +1,5 @@
-import { Font, MSDFGeometry } from '../../src/index'
-import * as THREE from 'three';
+import { Font, TextGeometry, extendMSDFMaterial } from '../../src/index'
 import fontsData from './font/font.json';
-import { MeshBasicMaterial } from 'three';
-import { extendMaterial } from '../../src/MSDFMaterial';
 
 async function init() {
   const canvas = document.querySelector('#canvas');
@@ -15,7 +12,7 @@ async function init() {
   const font = new Font(fontsData);
 
   console.time()
-  const geometry = new MSDFGeometry({
+  const geometry = new TextGeometry({
     font,
     text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc a ante turpis. Aliquam diam urna, malesuada vel nibh vel, cursus dapibus risus. Suspendisse eu odio risus. Aenean id purus vitae purus pretium accumsan id elementum odio. Mauris elit odio, condimentum id massa in, lobortis hendrerit metus. In non tellus vitae ipsum eleifend facilisis vel vel sapien. Proin sed metus euismod, ornare velit semper, tempus quam. Sed pellentesque volutpat sapien, nec scelerisque risus volutpat at.",
     width: 15,
@@ -27,7 +24,7 @@ async function init() {
   console.timeEnd()
 
   // const material = new MSDFMaterial({ atlas: texture });
-  let material = extendMaterial(new MeshBasicMaterial({
+  let material = extendMSDFMaterial(new THREE.MeshBasicMaterial({
     color: 0xFFFFFF,
     opacity: 0.5,
     transparent: true,
