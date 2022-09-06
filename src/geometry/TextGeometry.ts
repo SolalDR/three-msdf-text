@@ -370,7 +370,7 @@ export class TextGeometry extends THREE.BufferGeometry {
           j * 4 * 3,
         )
 
-        if (this.attributes.charPosition) {
+        if (this.hasCharPosition) {
           ;(this.attributes.charPosition.array as Float32Array).set(
             [x, y - h, 0, x, y, 0, x + w, y - h, 0, x + w, y, 0],
             j * 4 * 3,
@@ -401,10 +401,13 @@ export class TextGeometry extends THREE.BufferGeometry {
           [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
           j * 4 * 2,
         )
-        ;(this.attributes.charPosition.array as Float32Array).set(
-          [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
-          j * 4 * 3,
-        )
+
+        if (this.hasCharPosition) {
+          ;(this.attributes.charPosition.array as Float32Array).set(
+            [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
+            j * 4 * 3,
+          )  
+        }
 
         // Reset cursor to baseline
         y += glyph.yoffset * this.textScale
@@ -431,5 +434,9 @@ export class TextGeometry extends THREE.BufferGeometry {
   updateText(text) {
     this.text = text
     this.computeGeometry()
+  }
+
+  get hasCharPosition() {
+    return !!this.attributes.charPosition
   }
 }
