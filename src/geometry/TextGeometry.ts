@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import { BufferGeometry, BufferAttribute } from 'three'
 import { Line } from './types'
 import { Font, FontChar, FontDefinition } from '../font'
 import { newline, whitespace } from '../utils/regexp'
@@ -29,7 +29,7 @@ export interface TextGeometryOptions extends ExtraAttributeOptions {
   wordBreak?: boolean
 }
 
-export class TextGeometry extends THREE.BufferGeometry {
+export class TextGeometry extends BufferGeometry {
   font: Font
   text: string
   width: number
@@ -111,75 +111,79 @@ export class TextGeometry extends THREE.BufferGeometry {
     // Create output buffers
     this.setAttribute(
       'position',
-      new THREE.BufferAttribute(new Float32Array(numChars * 4 * 3), 3),
+      new BufferAttribute(new Float32Array(numChars * 4 * 3), 3),
     )
     this.setAttribute(
       'charUv',
-      new THREE.BufferAttribute(new Float32Array(numChars * 4 * 2), 2),
+      new BufferAttribute(new Float32Array(numChars * 4 * 2), 2),
     )
-    if (charPosition)
+
+    if (charPosition) {
       this.setAttribute(
         'charPosition',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4 * 3), 3),
+        new BufferAttribute(new Float32Array(numChars * 4 * 3), 3),
       )
-    if (uv)
+    }
+
+    if (uv) {
       this.setAttribute(
         'uv',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4 * 2), 2),
+        new BufferAttribute(new Float32Array(numChars * 4 * 2), 2),
       )
+    }
 
     if (lineIndex) {
       this.setAttribute(
         'lineIndex',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     if (charIndex) {
       this.setAttribute(
         'charIndex',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     if (wordIndex) {
       this.setAttribute(
         'wordIndex',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     if (lineCharIndex) {
       this.setAttribute(
         'lineCharIndex',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     if (lineWordIndex) {
       this.setAttribute(
         'lineWordIndex',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     if (lineWordCount) {
       this.setAttribute(
         'lineWordCount',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     if (lineCharCount) {
       this.setAttribute(
         'lineCharCount',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     this.setAttribute(
       'id',
-      new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+      new BufferAttribute(new Float32Array(numChars * 4), 1),
     )
 
     const indexArray = new Uint32Array(numChars * 6)
@@ -191,10 +195,6 @@ export class TextGeometry extends THREE.BufferGeometry {
         [i * 4, i * 4 + 2, i * 4 + 1, i * 4 + 1, i * 4 + 2, i * 4 + 3],
         i * 6,
       )
-    }
-
-    if (uv) {
-      this.boundingBox = new THREE.Box3()
     }
 
     this.setIndex(Array.from(indexArray))
@@ -397,6 +397,7 @@ export class TextGeometry extends THREE.BufferGeometry {
         const uw = glyph.width / texW
         const v = 1.0 - glyph.y / texH
         const vh = glyph.height / texH
+        
         ;(this.attributes.charUv.array as Float32Array).set(
           [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
           j * 4 * 2,

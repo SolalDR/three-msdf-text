@@ -53,6 +53,5 @@ export function extendMSDFMaterial(material: THREE.Material, {
     }
   });
 
-
   return material;
 }
