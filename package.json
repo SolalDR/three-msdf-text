@@ -1,7 +1,7 @@
 {
   "name": "@solaldr/three-msdf-text",
   "repository": "SolalDR/three-msdf-text",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "main": "build/index.js",
   "module": "build/index.esm.js",
   "browser": "build/index.umd.js",
@@ -42,8 +42,6 @@
     "build": "rollup -c && npm run docs",
     "dev": "rollup -c -w",
     "test": "node test/test.js",
-    "pretest": "npm run build",
-    "deploy": "npm run build && npm publish",
     "docs": "typedoc src/index.ts"
   },
   "files": [
