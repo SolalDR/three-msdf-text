@@ -7,6 +7,8 @@ import { ShaderLib } from 'three';
 Object.keys(ShaderLib).forEach(shaderName => {
   const shaderDef = ShaderLib[shaderName];
   
+  if (shaderDef.fragmentShader.match('msdf')) return;
+  
   shaderDef.fragmentShader = shaderDef.fragmentShader.replace(
     `#include <alphatest_pars_fragment>`, 
     `#include <alphatest_pars_fragment>\n#include <msdftest_pars_fragment>`
