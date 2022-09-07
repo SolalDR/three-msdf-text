@@ -1,5 +1,6 @@
 import type { WebGLRenderer, MeshBasicMaterialParameters } from 'three'
 import type { MSDFShader, Shader } from '@/shaders/types/Shader';
+import { hydrateMSDFLib } from './hydrateMSDFLib';
 
 export interface MSDFMaterialOptions extends MeshBasicMaterialParameters {
   atlas?: THREE.Texture
@@ -57,6 +58,9 @@ export function extendMSDFMaterial<M extends THREE.Material>(material, {
     userCallback: null,
     msdfCallback: (shader: Shader, renderer: WebGLRenderer) => {
       const s = shader
+
+      hydrateMSDFLib(shader)
+      
       if (!s.defines) s.defines = {}
       if (!s.uniforms) s.uniforms = {}
 
