@@ -1,5 +1,5 @@
-import * as THREE from 'three'
-import { Line } from './types'
+import type { Line } from './types'
+import { BufferGeometry, BufferAttribute } from 'three'
 import { Font, FontChar, FontDefinition } from '../font'
 import { newline, whitespace } from '../utils/regexp'
 import { getKernPairOffset } from './getKernPairOffset'
@@ -14,6 +14,7 @@ export interface ExtraAttributeOptions {
   lineWordIndex?: boolean
   lineWordCount?: boolean
   lineCharCount?: boolean
+  normal?: boolean
 }
 
 export interface TextGeometryOptions extends ExtraAttributeOptions {
@@ -29,7 +30,7 @@ export interface TextGeometryOptions extends ExtraAttributeOptions {
   wordBreak?: boolean
 }
 
-export class TextGeometry extends THREE.BufferGeometry {
+export class TextGeometry extends BufferGeometry {
   font: Font
   text: string
   width: number
@@ -65,6 +66,7 @@ export class TextGeometry extends THREE.BufferGeometry {
     lineWordIndex = false,
     lineWordCount = false,
     lineCharCount = false,
+    normal = false
   }: TextGeometryOptions = {}) {
     super()
     this.font = font instanceof Font ? font : new Font(font)
@@ -90,6 +92,7 @@ export class TextGeometry extends THREE.BufferGeometry {
       lineWordIndex,
       lineWordCount,
       lineCharCount,
+      normal
     })
   }
 
@@ -102,7 +105,8 @@ export class TextGeometry extends THREE.BufferGeometry {
     lineCharIndex,
     lineWordIndex,
     lineWordCount,
-    lineCharCount
+    lineCharCount,
+    normal
   }: ExtraAttributeOptions = {}) {
     // Strip spaces and newlines to get actual character length for buffers
     const chars = this.text.replace(/[ \n]/g, '')
@@ -111,75 +115,86 @@ export class TextGeometry extends THREE.BufferGeometry {
     // Create output buffers
     this.setAttribute(
       'position',
-      new THREE.BufferAttribute(new Float32Array(numChars * 4 * 3), 3),
+      new BufferAttribute(new Float32Array(numChars * 4 * 3), 3),
     )
     this.setAttribute(
       'charUv',
-      new THREE.BufferAttribute(new Float32Array(numChars * 4 * 2), 2),
+      new BufferAttribute(new Float32Array(numChars * 4 * 2), 2),
     )
-    if (charPosition)
+
+    if (normal) {
+      this.setAttribute(
+        'normal',
+        new BufferAttribute(new Float32Array(numChars * 4 * 3), 3),
+      )
+    }
+
+    if (charPosition) {
       this.setAttribute(
         'charPosition',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4 * 3), 3),
+        new BufferAttribute(new Float32Array(numChars * 4 * 3), 3),
       )
-    if (uv)
+    }
+
+    if (uv) {
       this.setAttribute(
         'uv',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4 * 2), 2),
+        new BufferAttribute(new Float32Array(numChars * 4 * 2), 2),
       )
+    }
 
     if (lineIndex) {
       this.setAttribute(
         'lineIndex',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     if (charIndex) {
       this.setAttribute(
         'charIndex',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     if (wordIndex) {
       this.setAttribute(
         'wordIndex',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     if (lineCharIndex) {
       this.setAttribute(
         'lineCharIndex',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     if (lineWordIndex) {
       this.setAttribute(
         'lineWordIndex',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     if (lineWordCount) {
       this.setAttribute(
         'lineWordCount',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     if (lineCharCount) {
       this.setAttribute(
         'lineCharCount',
-        new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+        new BufferAttribute(new Float32Array(numChars * 4), 1),
       )
     }
 
     this.setAttribute(
       'id',
-      new THREE.BufferAttribute(new Float32Array(numChars * 4), 1),
+      new BufferAttribute(new Float32Array(numChars * 4), 1),
     )
 
     const indexArray = new Uint32Array(numChars * 6)
@@ -191,10 +206,6 @@ export class TextGeometry extends THREE.BufferGeometry {
         [i * 4, i * 4 + 2, i * 4 + 1, i * 4 + 1, i * 4 + 2, i * 4 + 3],
         i * 6,
       )
-    }
-
-    if (uv) {
-      this.boundingBox = new THREE.Box3()
     }
 
     this.setIndex(Array.from(indexArray))
@@ -335,25 +346,30 @@ export class TextGeometry extends THREE.BufferGeometry {
     let y = 0.07 * this.size,
       x = 0
 
+    let offsetHeight = 0;
     if (this.alignY === 'center') {
-      y += this.computedHeight / 2
+      offsetHeight = this.computedHeight / 2
     } else if (this.alignY === 'bottom') {
-      y += this.computedHeight
+      offsetHeight = this.computedHeight
     }
+
+    y += offsetHeight;
 
     let j = 0
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex]
+      const normalizedY = y - offsetHeight;
+      
 
       for (let i = 0; i < line.chars.length; i++) {
         const glyph = line.chars[i].definition
-        x = line.chars[i].x
 
-        if (this.alignX === 'center') {
-          x -= line.width * 0.5
-        } else if (this.alignX === 'right') {
-          x -= line.width
-        }
+        // each letter is a quad. axis bottom left
+        const w = glyph.width * this.textScale
+        const h = glyph.height * this.textScale
+
+                
+        x = line.chars[i].x
 
         // If space, don't add to geometry
         if (whitespace.test(glyph.char)) continue
@@ -362,9 +378,29 @@ export class TextGeometry extends THREE.BufferGeometry {
         x += glyph.xoffset * this.textScale
         y -= glyph.yoffset * this.textScale
 
-        // each letter is a quad. axis bottom left
-        const w = glyph.width * this.textScale
-        const h = glyph.height * this.textScale
+        if (this.attributes.uv) {
+          ;(this.attributes.uv.array as Float32Array).set(
+            [
+              x / cW,
+              1 - (normalizedY - h) / -cH,
+              x / cW,
+              1 - normalizedY / -cH,
+              (x + w) / cW,
+              1 - (normalizedY - h) / -cH,
+              (x + w) / cW,
+              1 - normalizedY / -cH,
+            ],
+            j * 4 * 2,
+          )
+        }
+
+
+        if (this.alignX === 'center') {
+          x -= line.width * 0.5
+        } else if (this.alignX === 'right') {
+          x -= line.width
+        }
+
         ;(this.attributes.position.array as Float32Array).set(
           [x, y - h, 0, x, y, 0, x + w, y - h, 0, x + w, y, 0],
           j * 4 * 3,
@@ -377,26 +413,11 @@ export class TextGeometry extends THREE.BufferGeometry {
           )
         }
 
-        if (this.attributes.uv) {
-          ;(this.attributes.uv.array as Float32Array).set(
-            [
-              x / cW,
-              1 - (y - h) / -cH,
-              x / cW,
-              1 - y / -cH,
-              (x + w) / cW,
-              1 - (y - h) / -cH,
-              (x + w) / cW,
-              1 - y / -cH,
-            ],
-            j * 4 * 2,
-          )
-        }
-
         const u = glyph.x / texW
         const uw = glyph.width / texW
         const v = 1.0 - glyph.y / texH
         const vh = glyph.height / texH
+        
         ;(this.attributes.charUv.array as Float32Array).set(
           [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
           j * 4 * 2,
@@ -405,6 +426,13 @@ export class TextGeometry extends THREE.BufferGeometry {
         if (this.hasCharPosition) {
           ;(this.attributes.charPosition.array as Float32Array).set(
             [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
+            j * 4 * 3,
+          )  
+        }
+
+        if (this.attributes.normal) {
+          ;(this.attributes.normal.array as Float32Array).set(
+            [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
             j * 4 * 3,
           )  
         }

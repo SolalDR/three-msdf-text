@@ -1,5 +1,5 @@
-import { MeshBasicMaterialParameters, WebGLRenderer } from 'three'; 
-import { Shader } from '@/shaders/types/Shader';
+import type { WebGLRenderer, MeshBasicMaterialParameters } from 'three'
+import type { MSDFShader, Shader } from '@/shaders/types/Shader';
 
 export interface MSDFMaterialOptions extends MeshBasicMaterialParameters {
   atlas?: THREE.Texture
@@ -9,13 +9,50 @@ export interface MSDFMaterialOptions extends MeshBasicMaterialParameters {
   strokeOuterWidth?: number
 }
 
-export function extendMSDFMaterial(material: THREE.Material, { 
+type ExtendMSDFMaterial<M extends THREE.Material> = Omit<M, 'userData'> & { 
+  userData: Record<string, any> & { shader: MSDFShader } 
+  strokeOuterWidth: number
+  strokeInnerWidth: number
+  threshold: number
+  isStroke: boolean
+  _strokeOuterWidth: number
+  _strokeInnerWidth: number
+  _threshold: number
+}
+
+type ExtendedMSDFMaterial<M extends THREE.Material> = Omit<ExtendMSDFMaterial<M>, '_strokeOuterWidth' | '_strokeInnerWidth' | '_threshold'>
+
+/**
+ * Define a new uniform and his acessors to manipulate uniforms
+ */
+function defineUniformProperty<M extends THREE.Material>(material: ExtendMSDFMaterial<M>, name: string, initialValue) {
+  const privateName = `_${name}`
+  const uniformName = `u${name[0].toUpperCase() + name.substring(1)}`
+
+  material[privateName] = initialValue;
+  Object.defineProperty(material, name, {
+    get: () => material[privateName],
+    set(value: number) {
+      material[privateName] = value
+      if (material.userData.shader) {
+        material.userData.shader.uniforms[uniformName].value = value
+      }
+    }
+  })
+}
+
+/**
+ * Extend a THREE.Material with MSDF support
+ */
+export function extendMSDFMaterial<M extends THREE.Material>(material, { 
   atlas, 
   threshold,
   stroke, 
   strokeInnerWidth = 0.5, 
   strokeOuterWidth = 0.0,
-}: MSDFMaterialOptions = {}) {
+}: MSDFMaterialOptions = {}): ExtendedMSDFMaterial<M> {
+  const m: ExtendMSDFMaterial<M> = material;
+
   const state = {
     userCallback: null,
     msdfCallback: (shader: Shader, renderer: WebGLRenderer) => {
@@ -31,18 +68,31 @@ export function extendMSDFMaterial(material: THREE.Material, {
 
       if (USE_THRESHOLD) {
         s.defines.USE_THRESHOLD = ''
-        s.uniforms.uThreshold = { value: threshold || 0.0 }
+        s.uniforms.uThreshold = { value: m.threshold || 0.0 }
       }
 
       if (USE_STROKE) {
         s.defines.USE_STROKE = ''
-        s.uniforms.uStrokeOuterWidth = { value: strokeOuterWidth }
-        s.uniforms.uStrokeInnerWidth = { value: strokeInnerWidth }
+        s.uniforms.uStrokeOuterWidth = { value: m.strokeOuterWidth }
+        s.uniforms.uStrokeInnerWidth = { value: m.strokeInnerWidth }
       }
       
+      material.userData.shader = shader;
+
       if (state.userCallback) state.userCallback(shader, renderer)
     },
   }
+
+  Object.defineProperty(m, 'isStroke', {
+    get: () => stroke,
+    set: () => {
+      console.warn('Cannot set property "isStroke"')
+    }
+  })
+
+  defineUniformProperty(m, 'strokeOuterWidth', strokeOuterWidth)
+  defineUniformProperty(m, 'strokeInnerWidth', strokeInnerWidth)
+  defineUniformProperty(m, 'threshold', threshold)
 
   Object.defineProperty(material, 'onBeforeCompile', {
     get () { 
@@ -52,7 +102,6 @@ export function extendMSDFMaterial(material: THREE.Material, {
       state.userCallback = v;
     }
   });
-
 
   return material;
 }
