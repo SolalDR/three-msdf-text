@@ -19,5 +19,5 @@ pane.addBlade({
   ],
   value: state.demo,
 }).on('change', (ev) => {
-  window.location.pathname = `/public/demo/${ev.value}.html`
+  window.location.href = window.location.href.replace(/(\w+?)\.html/, `${ev.value}.html`)
 });
