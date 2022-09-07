@@ -6,6 +6,8 @@ window.state = {
   demo: demoName ? demoName[1] : "basic"
 }
 
+console.log(state.demo)
+
 pane.addBlade({
   view: 'list',
   label: 'demo',
@@ -19,5 +21,5 @@ pane.addBlade({
   ],
   value: state.demo,
 }).on('change', (ev) => {
-  window.location.href = window.location.href.replace(/(\w+?)\.html/, `${ev.value}.html`)
+  window.location.href = window.location.href.replace(/\/[\w.]*?$/, `/${ev.value}.html`)
 });
