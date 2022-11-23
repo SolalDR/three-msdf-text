@@ -46,48 +46,52 @@ Features:
 })()
 ```
 
-## width, height and uv attribute
-
-The properties `width` and `height` are automatically computed.
-The `uv` attribute is interpolate based on the `width` and `height` values.
-You may want to force the `width` value to wrap automatically.
-You may also want to force `width` and `height` values to correctly interpolate `uv` attribute.
-
-<img src="http://localhost:10001/public/demo/docs/layout.svg" />
-
-## optional attributes
+## Attributes
 
 You can use a lot of different attributes depending on your needs :
 
-- `uv`, `vec2`
-- `normal`, `vec3`
-- `lineIndex`, `int`
-- `charIndex`, `int`
-- `wordIndex`, `int`
-- `charSize`, `vec2`
-- `lineCharIndex`, `int`
-- `lineWordIndex`, `int`
-- `lineWordCount`, `int`
-- `lineCharCount`, `int`
+| Attribute       | Size | Required | Enabled | Description                                     |
+| --------------- | ---- | -------- | ------- | ----------------------------------------------- |
+| `id`            | 1    | `true`   | `true`  | Used for face indexing                          |
+| `position`      | 3    | `true`   | `true`  | The classic position attribute used in three.js |
+| `charUv`        | 2    | `true`   | `true`  | UV coords used in the font atlas                |
+| `uv`            | 2    | `false`  | `false` | The classic uv attribute used in three.js       |
+| `normal`        | 3    | `false`  | `false` | The classic normal attribute used in three.js   |
+| `lineIndex`     | 1    | `false`  | `false` | See schema below                                |
+| `charIndex`     | 1    | `false`  | `false` | See schema below                                |
+| `wordIndex`     | 1    | `false`  | `false` | See schema below                                |
+| `charSize`      | 2    | `false`  | `false` | See schema below                                |
+| `lineCharIndex` | 1    | `false`  | `false` | See schema below                                |
+| `lineWordIndex` | 1    | `false`  | `false` | See schema below                                |
+| `lineCharCount` | 1    | `false`  | `false` | See schema below                                |
+| `lineWordCount` | 1    | `false`  | `false` | See schema below                                |
 
-### Enabled a attribute
+For example, with a `THREE.MeshStandardMaterial` material, you will need `uv` and `normal` attributes.
 
 ```javascript
 const geometry = new TextGeometry({
   ...options,
   uv: true,
   normal: true,
-  lineIndex: true,
 })
 ```
 
-<img src="http://localhost:10001/public/demo/docs/optional.svg" />
+<img src="https://solaldr.github.io/three-msdf-text/public/demo/docs/optional.svg" />
+
+## width, height
+
+The properties `width` and `height` are automatically computed.
+The `uv` attribute is interpolate based on the `width` and `height` values.
+You may want to force the `width` value to wrap automatically.
+You may also want to force `width` and `height` values to correctly interpolate `uv` attribute.
+
+<img src="https://solaldr.github.io/three-msdf-text/public/demo/docs/layout.svg" />
 
 ## alignX and alignY
 
 Depending on the alignX and alignY properties, the geometry is constructed with a different origin.
 
-<img src="http://localhost:10001/public/demo/docs/alignment.svg" />
+<img src="https://solaldr.github.io/three-msdf-text/public/demo/docs/alignment.svg" />
 
 ## Contributing
 
