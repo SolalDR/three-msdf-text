@@ -1,4 +1,4 @@
-import { FontChar} from  "../../font/types/FontChar"
+import { FontChar } from '../../font/types/FontChar'
 
 /**
  * Struct of a char in a TextGeometry
