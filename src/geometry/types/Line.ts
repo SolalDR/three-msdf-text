@@ -1,4 +1,4 @@
-import { TextChar } from "./TextChar"
+import { TextChar } from './TextChar'
 
 /**
  * Struct of a line in a TextGeometry

@@ -35,8 +35,8 @@
     "typescript": "^4.1.3"
   },
   "peerDependencies": {
-    "@types/three": "^0.143.2",
-    "three": "^0.143.0"
+    "@types/three": "^0.140.2",
+    "three": "^0.140.0"
   },
   "scripts": {
     "commit": "npm run format && cz",

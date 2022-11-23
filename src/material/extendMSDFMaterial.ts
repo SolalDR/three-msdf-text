@@ -1,6 +1,6 @@
 import type { WebGLRenderer, MeshBasicMaterialParameters } from 'three'
-import type { MSDFShader, Shader } from '@/shaders/types/Shader';
-import { hydrateMSDFLib } from './hydrateMSDFLib';
+import type { MSDFShader, Shader } from '@/shaders/types/Shader'
+import { hydrateMSDFLib } from './hydrateMSDFLib'
 
 export interface MSDFMaterialOptions extends MeshBasicMaterialParameters {
   atlas?: THREE.Texture
@@ -10,8 +10,8 @@ export interface MSDFMaterialOptions extends MeshBasicMaterialParameters {
   strokeOuterWidth?: number
 }
 
-type ExtendMSDFMaterial<M extends THREE.Material> = Omit<M, 'userData'> & { 
-  userData: Record<string, any> & { shader: MSDFShader } 
+type ExtendMSDFMaterial<M extends THREE.Material> = Omit<M, 'userData'> & {
+  userData: Record<string, any> & { shader: MSDFShader }
   strokeOuterWidth: number
   strokeInnerWidth: number
   threshold: number
@@ -21,16 +21,23 @@ type ExtendMSDFMaterial<M extends THREE.Material> = Omit<M, 'userData'> & {
   _threshold: number
 }
 
-type ExtendedMSDFMaterial<M extends THREE.Material> = Omit<ExtendMSDFMaterial<M>, '_strokeOuterWidth' | '_strokeInnerWidth' | '_threshold'>
+type ExtendedMSDFMaterial<M extends THREE.Material> = Omit<
+  ExtendMSDFMaterial<M>,
+  '_strokeOuterWidth' | '_strokeInnerWidth' | '_threshold'
+>
 
 /**
  * Define a new uniform and his acessors to manipulate uniforms
  */
-function defineUniformProperty<M extends THREE.Material>(material: ExtendMSDFMaterial<M>, name: string, initialValue) {
+function defineUniformProperty<M extends THREE.Material>(
+  material: ExtendMSDFMaterial<M>,
+  name: string,
+  initialValue,
+) {
   const privateName = `_${name}`
   const uniformName = `u${name[0].toUpperCase() + name.substring(1)}`
 
-  material[privateName] = initialValue;
+  material[privateName] = initialValue
   Object.defineProperty(material, name, {
     get: () => material[privateName],
     set(value: number) {
@@ -38,21 +45,24 @@ function defineUniformProperty<M extends THREE.Material>(material: ExtendMSDFMat
       if (material.userData.shader) {
         material.userData.shader.uniforms[uniformName].value = value
       }
-    }
+    },
   })
 }
 
 /**
  * Extend a THREE.Material with MSDF support
  */
-export function extendMSDFMaterial<M extends THREE.Material>(material, { 
-  atlas, 
-  threshold,
-  stroke, 
-  strokeInnerWidth = 0.5, 
-  strokeOuterWidth = 0.0,
-}: MSDFMaterialOptions = {}): ExtendedMSDFMaterial<M> {
-  const m: ExtendMSDFMaterial<M> = material;
+export function extendMSDFMaterial<M extends THREE.Material>(
+  material,
+  {
+    atlas,
+    threshold,
+    stroke,
+    strokeInnerWidth = 0.5,
+    strokeOuterWidth = 0.0,
+  }: MSDFMaterialOptions = {},
+): ExtendedMSDFMaterial<M> {
+  const m: ExtendMSDFMaterial<M> = material
 
   const state = {
     userCallback: null,
@@ -60,12 +70,12 @@ export function extendMSDFMaterial<M extends THREE.Material>(material, {
       const s = shader
 
       hydrateMSDFLib(shader)
-      
+
       if (!s.defines) s.defines = {}
       if (!s.uniforms) s.uniforms = {}
 
       const USE_THRESHOLD = threshold !== undefined
-      const USE_STROKE = !!stroke;
+      const USE_STROKE = !!stroke
 
       s.defines.USE_MSDF_GEOMETRY = ''
       s.uniforms.uAtlas = { value: atlas }
@@ -80,8 +90,8 @@ export function extendMSDFMaterial<M extends THREE.Material>(material, {
         s.uniforms.uStrokeOuterWidth = { value: m.strokeOuterWidth }
         s.uniforms.uStrokeInnerWidth = { value: m.strokeInnerWidth }
       }
-      
-      material.userData.shader = shader;
+
+      material.userData.shader = shader
 
       if (state.userCallback) state.userCallback(shader, renderer)
     },
@@ -91,7 +101,7 @@ export function extendMSDFMaterial<M extends THREE.Material>(material, {
     get: () => stroke,
     set: () => {
       console.warn('Cannot set property "isStroke"')
-    }
+    },
   })
 
   defineUniformProperty(m, 'strokeOuterWidth', strokeOuterWidth)
@@ -99,13 +109,13 @@ export function extendMSDFMaterial<M extends THREE.Material>(material, {
   defineUniformProperty(m, 'threshold', threshold)
 
   Object.defineProperty(material, 'onBeforeCompile', {
-    get () { 
+    get() {
       return state.msdfCallback
     },
-    set (v) {
-      state.userCallback = v;
-    }
-  });
+    set(v) {
+      state.userCallback = v
+    },
+  })
 
-  return material;
+  return material
 }

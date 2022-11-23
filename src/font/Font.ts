@@ -1,8 +1,8 @@
-import { FontCommon } from "./types/Common"
-import { DistanceField } from "./types/DistanceFIeld"
-import { FontChar } from "./types/FontChar"
+import { FontCommon } from './types/Common'
+import { DistanceField } from './types/DistanceFIeld'
+import { FontChar } from './types/FontChar'
 import { FontDefinition } from './types/FontDefinition'
-import { Kerning } from "./types/Kerning"
+import { Kerning } from './types/Kerning'
 
 /**
  * Class representation of a JSON font file.
@@ -26,10 +26,12 @@ export class Font {
     this.kernings = font.kernings
 
     if (this.distanceField.fieldType !== 'msdf') {
-      console.warn('three-msdf-text(font.distanceField): fieldType should be "msdf"');
+      console.warn(
+        'three-msdf-text(font.distanceField): fieldType should be "msdf"',
+      )
     }
 
     // Index font chars per key for better accessibility
-    font.chars.forEach((d) => (this.indexedChar[d.char] = d));
+    font.chars.forEach((d) => (this.indexedChar[d.char] = d))
   }
 }

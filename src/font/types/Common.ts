@@ -10,5 +10,4 @@ export interface FontCommon {
   redChnl: number
   greenChnl: number
   blueChnl: number
-} 
-
+}
