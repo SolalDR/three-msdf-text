@@ -9,10 +9,11 @@ const attributesDefinitions = {
   position: { size: 3, default: true },
   charUv: { size: 2, default: true },
   uv: { size: 2, default: false },
-  charPosition: { size: 3, default: false },
   normal: { size: 3, default: false },
+  charPosition: { size: 3, default: false },
   lineIndex: { size: 1, default: false },
   charIndex: { size: 1, default: false },
+  charSize: { size: 2, default: false },
   wordIndex: { size: 1, default: false },
   lineCharIndex: { size: 1, default: false },
   lineWordIndex: { size: 1, default: false },
@@ -26,7 +27,8 @@ export type ExtraAttributeOptions = Partial<Record<Attribute, boolean>>
 export interface TextGeometryOptions extends ExtraAttributeOptions {
   font?: Font | FontDefinition
   text?: string
-  width?: number
+  width?: number | 'auto'
+  height?: number | 'auto'
   alignX?: string
   alignY?: string
   size?: number
@@ -34,12 +36,14 @@ export interface TextGeometryOptions extends ExtraAttributeOptions {
   lineHeight?: number
   wordSpacing?: number
   wordBreak?: boolean
+  lineBreak?: boolean
 }
 
 export class TextGeometry extends BufferGeometry {
   font: Font
   text: string
-  width: number
+  width: number | 'auto'
+  height: number | 'auto'
   alignX: string
   alignY: string
   size: number
@@ -47,6 +51,7 @@ export class TextGeometry extends BufferGeometry {
   lineHeight: number
   wordSpacing: number
   wordBreak: boolean
+  lineBreak: boolean
   textScale: number
   computedWidth: number
   computedHeight: number
@@ -56,7 +61,8 @@ export class TextGeometry extends BufferGeometry {
   constructor({
     font,
     text,
-    width = Infinity,
+    width = 'auto',
+    height = 'auto',
     alignX = 'left',
     alignY = 'top',
     size = 1,
@@ -64,12 +70,14 @@ export class TextGeometry extends BufferGeometry {
     lineHeight = 1.4,
     wordSpacing = 0,
     wordBreak = false,
+    lineBreak = true,
     ...attributes
   }: TextGeometryOptions = {}) {
     super()
     this.font = font instanceof Font ? font : new Font(font)
     this.text = text
     this.width = width
+    this.height = height
     this.alignX = alignX
     this.alignY = alignY
     this.size = size
@@ -77,6 +85,7 @@ export class TextGeometry extends BufferGeometry {
     this.lineHeight = lineHeight
     this.wordSpacing = wordSpacing
     this.wordBreak = wordBreak
+    this.lineBreak = lineBreak
     this.textScale =
       this.size / (this.font.common.baseline || this.font.common.base)
 
@@ -212,8 +221,11 @@ export class TextGeometry extends BufferGeometry {
       line.width += advance
       wordWidth += advance
 
-      // If width defined
-      if (line.width > this.width) {
+      // If strict width defined
+      if (
+        (this.width === 'auto' || line.width > this.width) &&
+        this.lineBreak
+      ) {
         // If can break words, undo latest glyph if line not empty and create new line
         if (this.wordBreak && line.chars.length > 1) {
           line.width -= advance
@@ -253,6 +265,11 @@ export class TextGeometry extends BufferGeometry {
 
     const cH = this.computedHeight
     const cW = this.computedWidth
+    const tW = this.width !== 'auto' ? this.width : cW
+    const tH = this.height !== 'auto' ? this.height : cH
+
+    let charIndex = 0,
+      wordIndex = 0
 
     // For all fonts tested, a little offset was needed to be right on the baseline, hence 0.07.
     let y = 0.07 * this.size,
@@ -274,6 +291,18 @@ export class TextGeometry extends BufferGeometry {
       const line = lines[lineIndex]
       const normalizedY = y - offsetHeight
 
+      let lineWordCount = line.chars.reduce((acc, value, index) => {
+        const isWhitespace = whitespace.test(value.definition.char)
+        const isInMiddle = index !== 0 && index !== line.chars.length - 1
+        if (isWhitespace && isInMiddle) {
+          acc++
+        }
+        return acc
+      }, 1)
+      let lineCharIndex = 0
+      let lineWordIndex = 0
+      let lineCharCount = line.chars.length
+
       for (let i = 0; i < line.chars.length; i++) {
         const glyph = line.chars[i].definition
 
@@ -284,18 +313,23 @@ export class TextGeometry extends BufferGeometry {
         x = line.chars[i].x
 
         // If space, don't add to geometry
-        if (whitespace.test(glyph.char)) continue
+        if (whitespace.test(glyph.char)) {
+          wordIndex++
+          lineWordIndex++
+          continue
+        }
 
         // Apply char sprite offsets
         x += glyph.xoffset * this.textScale
         y -= glyph.yoffset * this.textScale
 
         xUnit = x
+        yUnit = y - offsetHeight
         if (this.alignX === 'center') {
-          xUnit = cW * 0.5 - line.width * 0.5 + x
+          xUnit = tW * 0.5 - line.width * 0.5 + x
           x -= line.width * 0.5
         } else if (this.alignX === 'right') {
-          xUnit = cW - line.width + x
+          xUnit = tW - line.width + x
           x -= line.width
         }
 
@@ -304,26 +338,38 @@ export class TextGeometry extends BufferGeometry {
         const v = 1.0 - glyph.y / texH
         const vh = glyph.height / texH
 
-        if (this.recordedAttributes.uv) {
-          ;(this.attributes.uv.array as Float32Array).set(
-            [
-              xUnit / cW,
-              1 - (normalizedY - h) / -cH,
-              xUnit / cW,
-              1 - normalizedY / -cH,
-              (xUnit + w) / cW,
-              1 - (normalizedY - h) / -cH,
-              (xUnit + w) / cW,
-              1 - normalizedY / -cH,
-            ],
-            j * 4 * 2,
-          )
-        }
+        /**
+         * Populate needed attributes buffers
+         */
 
         ;(this.attributes.position.array as Float32Array).set(
           [x, y - h, 0, x, y, 0, x + w, y - h, 0, x + w, y, 0],
           j * 4 * 3,
         )
+        ;(this.attributes.charUv.array as Float32Array).set(
+          [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
+          j * 4 * 2,
+        )
+
+        /**
+         * Populate optionals attributes buffers
+         */
+
+        if (this.recordedAttributes.uv) {
+          ;(this.attributes.uv.array as Float32Array).set(
+            [
+              xUnit / tW,
+              1 - (yUnit - h) / -tH,
+              xUnit / tW,
+              1 - yUnit / -tH,
+              (xUnit + w) / tW,
+              1 - (yUnit - h) / -tH,
+              (xUnit + w) / tW,
+              1 - yUnit / -tH,
+            ],
+            j * 4 * 2,
+          )
+        }
 
         if (this.recordedAttributes.charPosition) {
           ;(this.attributes.charPosition.array as Float32Array).set(
@@ -332,29 +378,81 @@ export class TextGeometry extends BufferGeometry {
           )
         }
 
-        ;(this.attributes.charUv.array as Float32Array).set(
-          [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
-          j * 4 * 2,
-        )
-
-        if (this.hasCharPosition) {
+        if (this.recordedAttributes.charPosition) {
           ;(this.attributes.charPosition.array as Float32Array).set(
             [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
             j * 4 * 3,
           )
         }
 
-        if (this.attributes.normal) {
+        if (this.recordedAttributes.normal) {
           ;(this.attributes.normal.array as Float32Array).set(
             [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
             j * 4 * 3,
           )
         }
 
+        if (this.recordedAttributes.lineIndex) {
+          ;(this.attributes.lineIndex.array as Float32Array).set(
+            [lineIndex, lineIndex, lineIndex, lineIndex],
+            j * 4,
+          )
+        }
+
+        if (this.recordedAttributes.charIndex) {
+          ;(this.attributes.lineIndex.array as Float32Array).set(
+            [charIndex, charIndex, charIndex, charIndex],
+            j * 4,
+          )
+        }
+
+        if (this.recordedAttributes.wordIndex) {
+          ;(this.attributes.lineIndex.array as Float32Array).set(
+            [wordIndex, wordIndex, wordIndex, wordIndex],
+            j * 4,
+          )
+        }
+
+        if (this.recordedAttributes.lineCharIndex) {
+          ;(this.attributes.lineIndex.array as Float32Array).set(
+            [lineCharIndex, lineCharIndex, lineCharIndex, lineCharIndex],
+            j * 4,
+          )
+        }
+
+        if (this.recordedAttributes.lineWordIndex) {
+          ;(this.attributes.lineIndex.array as Float32Array).set(
+            [lineWordIndex, lineWordIndex, lineWordIndex, lineWordIndex],
+            j * 4,
+          )
+        }
+
+        if (this.recordedAttributes.lineWordCount) {
+          ;(this.attributes.lineIndex.array as Float32Array).set(
+            [lineWordCount, lineWordCount, lineWordCount, lineWordCount],
+            j * 4,
+          )
+        }
+
+        if (this.recordedAttributes.lineCharCount) {
+          ;(this.attributes.lineIndex.array as Float32Array).set(
+            [lineCharCount, lineCharCount, lineCharCount, lineCharCount],
+            j * 4,
+          )
+        }
+
+        if (this.recordedAttributes.charSize) {
+          ;(this.attributes.charSize.array as Float32Array).set(
+            [w, h, w, h, w, h, w, h],
+            j * 4 * 2,
+          )
+        }
+
         // Reset cursor to baseline
         y += glyph.yoffset * this.textScale
-
         j++
+        charIndex++
+        lineCharIndex++
       }
 
       y -= this.size * this.lineHeight
@@ -364,8 +462,9 @@ export class TextGeometry extends BufferGeometry {
   /**
    * Update buffers with new layout
    */
-  resize(width: number) {
+  resize(width: number | 'auto', height: number | 'auto' = 'auto') {
     this.width = width
+    this.height = height
     this.computeGeometry()
   }
 

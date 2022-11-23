@@ -18,7 +18,18 @@ async function init() {
     alignY: 'center',
     alignX: 'center',
     uv: true,
+    charPosition: true,
+    normal: true,
+    lineIndex: true,
+    charIndex: true,
+    wordIndex: true,
+    lineCharIndex: true,
+    lineWordIndex: true,
+    lineWordCount: true,
+    lineCharCount: true,
     lineHeight: 1,
+    width: 25,
+    height: 25,
   })
 
   let material = extendMSDFMaterial(
@@ -34,18 +45,18 @@ async function init() {
     },
   )
 
-  pane.addInput(state, 'text').on('change', event => {
+  pane.addInput(state, 'text').on('change', (event) => {
     geometry.updateText(event.value)
   })
 
-  window.addEventListener('keypress', e => {
+  window.addEventListener('keypress', (e) => {
     if (e.key.length > 1) return
     if (['Backspace', 'Enter'].indexOf(e.key) > -1) return
     state.text += e.key
     geometry.updateText(state.text)
   })
 
-  window.addEventListener('keydown', e => {
+  window.addEventListener('keydown', (e) => {
     if (e.key === 'Backspace') {
       state.text = state.text.slice(0, -1)
     }
