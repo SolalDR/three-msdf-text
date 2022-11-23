@@ -222,10 +222,7 @@ export class TextGeometry extends BufferGeometry {
       wordWidth += advance
 
       // If strict width defined
-      if (
-        (this.width === 'auto' || line.width > this.width) &&
-        this.lineBreak
-      ) {
+      if (this.width !== 'auto' && line.width > this.width && this.lineBreak) {
         // If can break words, undo latest glyph if line not empty and create new line
         if (this.wordBreak && line.chars.length > 1) {
           line.width -= advance
