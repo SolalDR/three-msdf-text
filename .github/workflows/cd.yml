@@ -3,8 +3,8 @@ name: CD Workflow
 on:
   workflow_dispatch:
   push:
-    tags:
-      - '**' # Push events to every tag including hierarchical tags like v1.0/beta
+    branches:
+      - master
 
 jobs:
   deploy:
