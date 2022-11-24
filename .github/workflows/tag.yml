@@ -11,6 +11,10 @@ jobs:
     name: Commit tag
     runs-on: ubuntu-latest
     steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+      - name: Install Node
+        uses: actions/setup-node@v3
       - name: Auto tag
         uses: Klemensas/action-autotag@1.2.3
         with:
