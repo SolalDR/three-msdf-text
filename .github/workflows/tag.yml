@@ -1,0 +1,17 @@
+name: CD
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  autotag:
+    name: Commit tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto tag
+        uses: Klemensas/action-autotag@1.2.3
+        with:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'

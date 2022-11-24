@@ -3,8 +3,8 @@ name: CD
 on:
   workflow_dispatch:
   push:
-    branches:
-      - master
+    tags:
+      - '**' # Push events to every tag including hierarchical tags like v1.0/beta
 
 jobs:
   deploy:
@@ -32,7 +32,3 @@ jobs:
           token: ${{ secrets.NPM_AUTH_TOKEN }}
           access: public
           registry: 'https://registry.npmjs.com/'
-      - name: Auto tag
-        uses: Klemensas/action-autotag@1.2.3
-        with:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
