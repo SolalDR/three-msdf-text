@@ -34,3 +34,5 @@ jobs:
           registry: 'https://registry.npmjs.com/'
       - name: Auto tag
         uses: Klemensas/action-autotag@1.2.3
+        with:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
