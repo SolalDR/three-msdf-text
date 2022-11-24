@@ -21,6 +21,8 @@ const attributesDefinitions = {
   lineCharCount: { size: 1, default: false },
 }
 
+type AlignX = 'left' | 'right' | 'center'
+type AlignY = 'top' | 'bottom' | 'center'
 type Attribute = keyof typeof attributesDefinitions
 export type ExtraAttributeOptions = Partial<Record<Attribute, boolean>>
 
@@ -29,8 +31,8 @@ export interface TextGeometryOptions extends ExtraAttributeOptions {
   text?: string
   width?: number | 'auto'
   height?: number | 'auto'
-  alignX?: string
-  alignY?: string
+  alignX?: AlignX
+  alignY?: AlignY
   size?: number
   letterSpacing?: number
   lineHeight?: number
@@ -44,8 +46,8 @@ export class TextGeometry extends BufferGeometry {
   text: string
   width: number | 'auto'
   height: number | 'auto'
-  alignX: string
-  alignY: string
+  alignX: AlignX
+  alignY: AlignY
   size: number
   letterSpacing: number
   lineHeight: number
