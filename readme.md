@@ -9,7 +9,7 @@
 
 ⚠️ Experimental : This library is still in development.
 
-Provide geometry and material for MSDF (multi-channel signed distance fields) in [THREE.js](threejs.org).<br>
+Provide geometry and material for MSDF (multi-channel signed distance fields) in [THREE.js](https://threejs.org).<br>
 
 Features:
 
@@ -17,7 +17,8 @@ Features:
 - [x] Native support of all THREE.js Material
 - [x] Typescript support
 - [x] No dependencies (except for three.js obviously)
-- [ ] Multipage
+- [ ] Multipage atlas
+- [ ] Geometry subdivision
 
 ## How to use
 
