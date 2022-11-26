@@ -37,7 +37,7 @@ async function init() {
   )
 
   const mesh = new THREE.Mesh(geometry, material)
-  initGUI(mesh)
+  initGUI(mesh, scene)
 
   scene.add(mesh)
 

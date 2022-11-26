@@ -69,7 +69,7 @@ export class TextGeometry extends BufferGeometry {
     alignY = 'top',
     size = 1,
     letterSpacing = 0,
-    lineHeight = 1.4,
+    lineHeight = 1,
     wordSpacing = 0,
     wordBreak = false,
     lineBreak = true,
@@ -89,7 +89,10 @@ export class TextGeometry extends BufferGeometry {
     this.wordBreak = wordBreak
     this.lineBreak = lineBreak
     this.textScale =
-      this.size / (this.font.common.baseline || this.font.common.base)
+      this.size /
+      (this.font.common.lineHeight ||
+        this.font.common.baseline ||
+        this.font.common.base)
 
     this.recordedAttributes = (
       Object.keys(attributesDefinitions) as Attribute[]
@@ -266,13 +269,14 @@ export class TextGeometry extends BufferGeometry {
     const cW = this.computedWidth
     const tW = this.width !== 'auto' ? this.width : cW
     const tH = this.height !== 'auto' ? this.height : cH
+    const lineOffset = (this.lineHeight * this.size - this.size) / 2
 
-    let charIndex = 0,
-      wordIndex = 0
+    let charIndex = 0
+    let wordIndex = 0
 
     // For all fonts tested, a little offset was needed to be right on the baseline, hence 0.07.
-    let y = 0.07 * this.size,
-      x = 0
+    let y = -lineOffset
+    let x = 0
     let yUnit, xUnit
 
     let offsetHeight = 0
@@ -298,6 +302,7 @@ export class TextGeometry extends BufferGeometry {
         }
         return acc
       }, 1)
+
       let lineCharIndex = 0
       let lineWordIndex = 0
       let lineCharCount = line.chars.length
