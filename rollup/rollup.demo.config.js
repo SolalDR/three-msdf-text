@@ -26,8 +26,8 @@ const template = `
 // }
 
 const demosConfig = demos.map((key) => {
-  // let demoTemplate = template.replaceAll('{{name}}', key)
-  // fs.writeFileSync(__dirname + `/public/demo/${key}.html`, demoTemplate)
+  let demoTemplate = template.replaceAll('{{name}}', key)
+  fs.writeFileSync(__dirname + `/public/demo/${key}.html`, demoTemplate)
 
   return {
     input: `demo/src/${key}.js`,
