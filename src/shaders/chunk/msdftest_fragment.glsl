@@ -1,10 +1,5 @@
 #define SQRT2DIV2 0.7071067811865476 // Math.sqrt(2) / 2 
 
-float uThreshold = 0.05;
-float uStrokeOutsetWidth = 0.0;
-float uStrokeInsetWidth = 0.5;
-vec3 uStrokeColor = vec3(1.0, 0.0, 0.0);
-
 #ifdef USE_MSDF_GEOMETRY
 
   vec3 msdfTexel = texture2D(uAtlas, vCharUv).rgb;

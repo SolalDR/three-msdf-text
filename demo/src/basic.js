@@ -1,5 +1,5 @@
 import { TextGeometry, extendMSDFMaterial } from '../../build/index.esm'
-import { initGUI, initScene } from './index'
+import { initGUI, initScene } from './utils/common'
 
 async function init() {
   const { renderer, camera, scene, font, atlas, loader } = await initScene()
@@ -38,7 +38,6 @@ async function init() {
       opacity: 1,
       transparent: true,
       side: THREE.DoubleSide,
-      // map: map,
     }),
     {
       atlas,

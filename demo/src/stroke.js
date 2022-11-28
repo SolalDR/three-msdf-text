@@ -1,9 +1,8 @@
 import { TextGeometry, extendMSDFMaterial } from '../../src/index'
-import { initGUI, initScene } from './index'
+import { initGUI, initScene } from './utils/common'
 
 async function init() {
   const { renderer, camera, scene, font, atlas, loader } = await initScene()
-  const map = await loader.loadAsync('./img/uv_test.jpeg')
 
   const geometry = new TextGeometry({
     font: font,
@@ -21,7 +20,6 @@ async function init() {
       opacity: 1,
       transparent: true,
       side: THREE.DoubleSide,
-      map: map,
     }),
     {
       atlas,
