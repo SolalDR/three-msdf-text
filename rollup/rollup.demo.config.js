@@ -6,9 +6,20 @@ import externalGlobals from 'rollup-plugin-external-globals'
 import demos from '../demo/src/index.json'
 import fs from 'fs'
 
-const template = fs.readFileSync(__dirname + '/demo/public/template.html', {
-  encoding: 'utf8',
-})
+const template = `
+  <html>
+    <head>
+      <title>Example {{name}} | three-msdf-text</title>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.143.0/three.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/tweakpane@3.1.0/dist/tweakpane.min.js"></script>
+      <link rel="stylesheet" href="./index.css" />
+    </head>
+    <body>
+      <canvas id="canvas"></canvas>
+      <script defer src="./{{name}}.js"></script>
+    </body>
+  </html>
+`
 
 const demosConfig = demos.map((key) => {
   let demoTemplate = template.replaceAll('{{name}}', key)
