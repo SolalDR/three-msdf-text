@@ -21,9 +21,9 @@ const template = `
   </html>
 `
 
-// if (!fs.existsSync(__dirname + `/public/demo`)) {
-//   fs.mkdirSync(__dirname + `/public/demo`, { recursive: true })
-// }
+if (!fs.existsSync(__dirname + `/public/demo`)) {
+  fs.mkdirSync(__dirname + `/public/demo`, { recursive: true })
+}
 
 const demosConfig = demos.map((key) => {
   let demoTemplate = template.replaceAll('{{name}}', key)
