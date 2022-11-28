@@ -21,13 +21,13 @@ const template = `
   </html>
 `
 
-if (!fs.existsSync(__dirname + `/public/demo`)) {
-  fs.mkdirSync(__dirname + `/public/demo`, { recursive: true })
-}
+// if (!fs.existsSync(__dirname + `/public/demo`)) {
+//   fs.mkdirSync(__dirname + `/public/demo`, { recursive: true })
+// }
 
 const demosConfig = demos.map((key) => {
-  let demoTemplate = template.replaceAll('{{name}}', key)
-  fs.writeFileSync(__dirname + `/public/demo/${key}.html`, demoTemplate)
+  // let demoTemplate = template.replaceAll('{{name}}', key)
+  // fs.writeFileSync(__dirname + `/public/demo/${key}.html`, demoTemplate)
 
   return {
     input: `demo/src/${key}.js`,
@@ -60,11 +60,11 @@ export default [
             src: 'demo/public/**/*',
             dest: 'public/demo/',
           },
-          // {
-          //   src: 'demo/public/basic.html',
-          //   dest: 'public/demo/',
-          //   rename: 'index.html',
-          // },
+          {
+            src: 'demo/public/basic.html',
+            dest: 'public/demo/',
+            rename: 'index.html',
+          },
         ],
       }),
       !isProduction &&
