@@ -1,3 +1,8 @@
+/**
+ * @author SolalDR
+ * @link https://solaldr.github.io/three-msdf-text/public/demo/index.html
+ */
+
 import { TextGeometry, extendMSDFMaterial } from '../../build/index.esm'
 import { initGUI, initScene } from './utils/common'
 

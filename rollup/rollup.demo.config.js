@@ -18,6 +18,9 @@ const template = `
     <body>
       <canvas id="canvas"></canvas>
       <script defer src="./{{name}}.js"></script>
+      <a class="codeBtn" href="https://github.com/SolalDR/three-msdf-text/blob/master/demo/src/{{name}}.js">
+        < / >
+      </a>
     </body>
   </html>
 `

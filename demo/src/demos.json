@@ -22,5 +22,11 @@
 		"output": "stroke.html",
 		"slug": "stroke",
 		"description": "MSDF material example with `stroke`, `strokeInnerWidth` and `strokeOuterWidth` options. "
+	},
+	{
+		"name": "Shader",
+		"output": "shader.html",
+		"slug": "shader",
+		"description": "MSDF Shader material example."
 	}
 ]

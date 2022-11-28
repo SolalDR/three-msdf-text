@@ -245,12 +245,12 @@ function initTypingListeners() {
   })
 }
 
-export function initGUI(m, scene) {
+export function initGUI(m, scene, { material = true } = {}) {
   mesh = m
   state.text = mesh.geometry.text
 
   initTypingListeners()
   initGeometryGUI()
   initDebugGUI()
-  initMaterialGUI()
+  if (material) initMaterialGUI()
 }

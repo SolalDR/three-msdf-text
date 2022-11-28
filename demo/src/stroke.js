@@ -1,3 +1,8 @@
+/**
+ * @author SolalDR
+ * @link https://solaldr.github.io/three-msdf-text/public/demo/stroke.html
+ */
+
 import { TextGeometry, extendMSDFMaterial } from '../../src/index'
 import { initGUI, initScene } from './utils/common'
 
