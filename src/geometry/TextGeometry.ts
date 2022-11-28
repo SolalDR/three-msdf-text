@@ -474,6 +474,10 @@ export class TextGeometry extends BufferGeometry {
 
   computeBoundingBox() {
     if (!this.boundingBox) this.boundingBox = new Box3()
+
+    this.boundingBox.min.setZ(0)
+    this.boundingBox.max.setZ(0)
+
     if (this.alignX === 'center') {
       this.boundingBox.min.setX(-this.computedWidth / 2)
       this.boundingBox.max.setX(this.computedWidth / 2)
@@ -497,6 +501,17 @@ export class TextGeometry extends BufferGeometry {
     if (this.alignY === 'top') {
       this.boundingBox.min.setY(-this.computedHeight)
       this.boundingBox.max.setY(0)
+    }
+
+    if (
+      isNaN(this.boundingBox.min.x) ||
+      isNaN(this.boundingBox.min.y) ||
+      isNaN(this.boundingBox.min.z)
+    ) {
+      console.error(
+        'THREE.BufferGeometry.computeBoundingBox(): Computed min/max have NaN values. The "position" attribute is likely to have NaN values.',
+        this,
+      )
     }
   }
 

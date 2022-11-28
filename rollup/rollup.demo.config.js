@@ -1,12 +1,12 @@
-import filesize from 'rollup-plugin-filesize'
-import { baseConfig, isProduction } from './rollup.base.config'
+import fs from 'fs'
 import copy from 'rollup-plugin-copy'
 import serve from 'rollup-plugin-serve'
+import filesize from 'rollup-plugin-filesize'
 import externalGlobals from 'rollup-plugin-external-globals'
+import { baseConfig, isProduction } from './rollup.base.config'
 import demos from '../demo/src/index.json'
-import fs from 'fs'
 
-const template = `
+const template = html`
   <html>
     <head>
       <title>Example {{name}} | three-msdf-text</title>
@@ -16,15 +16,21 @@ const template = `
     </head>
     <body>
       <canvas id="canvas"></canvas>
-        <script defer src="./{{name}}.js"></script>
+      <script defer src="./{{name}}.js"></script>
     </body>
   </html>
 `
 
+/**
+ * Create a /public/demo if not exist
+ */
 if (!fs.existsSync(__dirname + `/public/demo`)) {
   fs.mkdirSync(__dirname + `/public/demo`, { recursive: true })
 }
 
+/**
+ * For each demo, generate a HTML file and export the rollup config
+ */
 const demosConfig = demos.map((key) => {
   let demoTemplate = template.replaceAll('{{name}}', key)
   fs.writeFileSync(__dirname + `/public/demo/${key}.html`, demoTemplate)
@@ -43,6 +49,9 @@ const demosConfig = demos.map((key) => {
     ],
   }
 })
+
+let demoTemplate = template.replaceAll('{{name}}', 'basic')
+fs.writeFileSync(__dirname + `/public/demo/index.html`, demoTemplate)
 
 export default [
   {
