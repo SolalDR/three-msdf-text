@@ -1,4 +1,4 @@
-import { TextGeometry, extendMSDFMaterial } from '../../build/index.esm'
+import { TextGeometry, extendMSDFMaterial } from '../../src/index'
 import { initGUI, initScene } from './utils/common'
 
 async function init() {

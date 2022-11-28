@@ -77,7 +77,7 @@ const geometry = new TextGeometry({
 })
 ```
 
-<img src="https://solaldr.github.io/three-msdf-text/public/demo/docs/optional.svg" />
+<img src="https://solaldr.github.io/three-msdf-text/public/demo/assets/docs/optional.svg" />
 
 ## width, height
 
@@ -86,13 +86,13 @@ The `uv` attribute is interpolate based on the `width` and `height` values.
 You may want to force the `width` value to wrap automatically.
 You may also want to force `width` and `height` values to correctly interpolate `uv` attribute.
 
-<img src="https://solaldr.github.io/three-msdf-text/public/demo/docs/layout.svg" />
+<img src="https://solaldr.github.io/three-msdf-text/public/demo/assets/docs/layout.svg" />
 
 ## alignX and alignY
 
 Depending on the alignX and alignY properties, the geometry is constructed with a different origin.
 
-<img src="https://solaldr.github.io/three-msdf-text/public/demo/docs/alignment.svg" />
+<img src="https://solaldr.github.io/three-msdf-text/public/demo/assets/docs/alignment.svg" />
 
 ## Contributing
 

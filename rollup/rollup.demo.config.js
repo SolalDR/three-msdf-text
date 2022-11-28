@@ -1,18 +1,19 @@
 import fs from 'fs'
+import fsExtra from 'fs-extra'
 import copy from 'rollup-plugin-copy'
 import serve from 'rollup-plugin-serve'
 import filesize from 'rollup-plugin-filesize'
 import externalGlobals from 'rollup-plugin-external-globals'
 import { baseConfig, isProduction } from './rollup.base.config'
-import demos from '../demo/src/index.json'
+import demos from '../demo/src/demos.json'
 
-const template = html`
+const template = `
   <html>
     <head>
       <title>Example {{name}} | three-msdf-text</title>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.143.0/three.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/tweakpane@3.1.0/dist/tweakpane.min.js"></script>
-      <link rel="stylesheet" href="./index.css" />
+      <link rel="stylesheet" href="./assets/index.css" />
     </head>
     <body>
       <canvas id="canvas"></canvas>
@@ -31,14 +32,14 @@ if (!fs.existsSync(__dirname + `/public/demo`)) {
 /**
  * For each demo, generate a HTML file and export the rollup config
  */
-const demosConfig = demos.map((key) => {
-  let demoTemplate = template.replaceAll('{{name}}', key)
-  fs.writeFileSync(__dirname + `/public/demo/${key}.html`, demoTemplate)
+const demosConfig = demos.map((demo) => {
+  let demoTemplate = template.replaceAll('{{name}}', demo.slug)
+  fs.writeFileSync(__dirname + `/public/demo/${demo.output}`, demoTemplate)
 
   return {
-    input: `demo/src/${key}.js`,
+    input: `demo/src/${demo.slug}.js`,
     output: {
-      file: `public/demo/${key}.js`,
+      file: `public/demo/${demo.slug}.js`,
       format: 'umd',
     },
     plugins: [
@@ -50,31 +51,23 @@ const demosConfig = demos.map((key) => {
   }
 })
 
-let demoTemplate = template.replaceAll('{{name}}', 'basic')
-fs.writeFileSync(__dirname + `/public/demo/index.html`, demoTemplate)
-
 export default [
   {
     input: `demo/src/basic.js`,
     output: {
-      file: `public/demo/index.js`,
+      file: `public/demo/basic.js`,
       format: 'umd',
     },
     plugins: [
       ...baseConfig,
-      isProduction && filesize(),
       copy({
         targets: [
           {
-            src: 'demo/static/**/*',
-            dest: 'public/demo/',
-          },
-          {
-            src: 'demo/static/basic.html',
-            dest: 'public/demo/',
-            rename: 'index.html',
+            src: 'demo/assets/*',
+            dest: 'public/demo',
           },
         ],
+        flatten: false,
       }),
       !isProduction &&
         serve('') &&

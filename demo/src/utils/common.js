@@ -1,25 +1,25 @@
 import { Font } from '../../../build/index.esm'
-import fontsData from './../font/Roboto-Regular-msdf.json'
-import list from '../index.json'
+import fontsData from '../../assets/font/Roboto-Regular-msdf.json'
+import list from '../demos.json'
 
 window.pane = new Tweakpane.Pane()
 
-const demoName = window.location.href.match(/([\w\-]+?)\.html/)
-const actualDemoName = demoName ? demoName[1] : 'basic'
+const demoName = window.location.href.match(/([\w\-.]+?)$/)
+const actualDemoName = demoName ? demoName[1] : 'index.html'
 
 pane
   .addBlade({
     view: 'list',
     label: 'demo',
     options: list.map((entry) => {
-      return { text: entry, value: entry }
+      return { text: entry.name, value: entry.output }
     }),
     value: actualDemoName,
   })
   .on('change', (ev) => {
     window.location.href = window.location.href.replace(
       /\/[\w\-.]*?$/,
-      `/${ev.value}.html`,
+      `/${ev.value}`,
     )
   })
 
@@ -62,7 +62,7 @@ export async function initScene() {
   canvas = document.querySelector('#canvas')
   scene = new THREE.Scene()
   loader = new THREE.TextureLoader()
-  atlas = await loader.loadAsync('./font/Roboto-Regular.png')
+  atlas = await loader.loadAsync('./assets/font/Roboto-Regular.png')
   font = new Font(fontsData)
   renderer = new THREE.WebGLRenderer({
     canvas,

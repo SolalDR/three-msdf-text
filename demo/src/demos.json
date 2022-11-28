@@ -1,0 +1,26 @@
+[
+	{
+		"name": "Basic",
+		"output": "index.html",
+		"slug": "basic",
+		"description": "Simple MSDF geometry example with THREE.MeshBasicMaterial."
+	},
+	{
+		"name": "Small text",
+		"output": "small-text.html",
+		"slug": "small-text",
+		"description": "MSDF material example using threshold distance options to improve rendering on small text."
+	},
+	{
+		"name": "PBR",
+		"output": "standard.html",
+		"slug": "standard",
+		"description": "MSDF example with THREE.MeshStandardMaterial."
+	},
+	{
+		"name": "Stroke",
+		"output": "stroke.html",
+		"slug": "stroke",
+		"description": "MSDF material example with `stroke`, `strokeInnerWidth` and `strokeOuterWidth` options. "
+	}
+]

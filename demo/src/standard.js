@@ -3,8 +3,8 @@ import { initGUI, initScene } from './utils/common'
 
 async function init() {
   const { renderer, camera, scene, font, atlas, loader } = await initScene()
-  const map = await loader.loadAsync('./img/diffuse.jpeg')
-  const normal = await loader.loadAsync('./img/normal.jpeg')
+  const map = await loader.loadAsync('./assets/img/diffuse.jpeg')
+  const normal = await loader.loadAsync('./assets/img/normal.jpeg')
   map.wrapS = map.wrapT = THREE.RepeatWrapping
   normal.wrapS = normal.wrapT = THREE.RepeatWrapping
 
