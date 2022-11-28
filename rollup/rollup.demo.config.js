@@ -57,11 +57,11 @@ export default [
       copy({
         targets: [
           {
-            src: 'demo/public/**/*',
+            src: 'demo/static/**/*',
             dest: 'public/demo/',
           },
           {
-            src: 'demo/public/basic.html',
+            src: 'demo/static/basic.html',
             dest: 'public/demo/',
             rename: 'index.html',
           },
