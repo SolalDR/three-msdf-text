@@ -15,7 +15,6 @@ async function init() {
     `,
   }
 
-  const startAt = performance.now()
   const geometry = new TextGeometry({
     font: font,
     text: state.text,
@@ -25,8 +24,6 @@ async function init() {
     lineHeight: 1.2,
     width: 26,
   })
-  const duration = performance.now() - startAt
-  console.log(duration)
 
   let material = extendMSDFMaterial(
     new THREE.MeshBasicMaterial({
@@ -34,7 +31,6 @@ async function init() {
       opacity: 1,
       transparent: true,
       side: THREE.DoubleSide,
-      // map: map,
     }),
     {
       atlas,

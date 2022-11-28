@@ -21,9 +21,10 @@ const attributesDefinitions = {
   lineCharCount: { size: 1, default: false },
 }
 
+type Attribute = keyof typeof attributesDefinitions
 type AlignX = 'left' | 'right' | 'center'
 type AlignY = 'top' | 'bottom' | 'center'
-type Attribute = keyof typeof attributesDefinitions
+
 export type ExtraAttributeOptions = Partial<Record<Attribute, boolean>>
 
 export interface TextGeometryOptions extends ExtraAttributeOptions {
@@ -42,6 +43,8 @@ export interface TextGeometryOptions extends ExtraAttributeOptions {
 }
 
 export class TextGeometry extends BufferGeometry {
+  private textScale: number
+
   font: Font
   text: string
   width: number | 'auto'
@@ -54,7 +57,6 @@ export class TextGeometry extends BufferGeometry {
   wordSpacing: number
   wordBreak: boolean
   lineBreak: boolean
-  textScale: number
   computedWidth: number
   computedHeight: number
   lineCount: number
@@ -115,8 +117,9 @@ export class TextGeometry extends BufferGeometry {
   }
 
   private computeGeometry() {
-    // Strip spaces and newlines to get actual character length for buffers
     const attr = this.recordedAttributes
+
+    // Strip spaces and newlines to get actual character length for buffers
     const chars = this.text.replace(/[ \n]/g, '')
     const numChars = chars.length
 
@@ -135,7 +138,10 @@ export class TextGeometry extends BufferGeometry {
 
     // Set values for buffers that don't require calculation
     for (let i = 0; i < numChars; i++) {
+      // Unique id for each char
       ;(this.attributes.id.array as Float32Array).set([i, i, i, i], i * 4)
+
+      // Geometry index
       indexArray.set(
         [i * 4, i * 4 + 2, i * 4 + 1, i * 4 + 1, i * 4 + 2, i * 4 + 3],
         i * 6,
@@ -174,7 +180,8 @@ export class TextGeometry extends BufferGeometry {
 
       const char = this.text[cursor]
 
-      if (char.match(newline)) {
+      // Detect \n char
+      if (newline.test(char)) {
         cursor++
         line = newLine()
         continue
@@ -235,7 +242,7 @@ export class TextGeometry extends BufferGeometry {
 
       // If strict width defined
       if (this.width !== 'auto' && line.width > this.width && this.lineBreak) {
-        // If can break words, undo latest glyph if line not empty and create new line
+        // If can break words, undo latest glyph if line not empty. Then create new line
         if (this.wordBreak && line.chars.length > 1) {
           line.width -= advance
           line.chars.pop()
@@ -262,6 +269,8 @@ export class TextGeometry extends BufferGeometry {
     if (!line.width) lines.pop()
 
     this.lineCount = lines.length
+
+    // Compute boundaries
     this.computedHeight = this.lineCount * this.size * this.lineHeight
     this.computedWidth = Math.max(...lines.map((line) => line.width))
 
@@ -276,52 +285,46 @@ export class TextGeometry extends BufferGeometry {
     const cW = this.computedWidth
     const tW = this.width !== 'auto' ? this.width : cW
     const tH = this.height !== 'auto' ? this.height : cH
-    const lineOffset = (this.lineHeight * this.size - this.size) / 2
 
-    let charIndex = 0
-    let wordIndex = 0
-
-    // For all fonts tested, a little offset was needed to be right on the baseline, hence 0.07.
-    let y = -lineOffset
+    let y = -(this.lineHeight * this.size - this.size) / 2
     let x = 0
     let yUnit, xUnit
 
+    let charIndex = 0
+    let wordIndex = 0
+    let j = 0
     let offsetHeight = 0
+
     if (this.alignY === 'center') {
       offsetHeight = this.computedHeight / 2
     } else if (this.alignY === 'bottom') {
       offsetHeight = this.computedHeight
     }
-
     y += offsetHeight
-
-    let j = 0
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex]
       const normalizedY = y - offsetHeight
 
-      let lineWordCount = line.chars.reduce((acc, value, index) => {
-        const isWhitespace = whitespace.test(value.definition.char)
-        const isInMiddle = index !== 0 && index !== line.chars.length - 1
-        if (isWhitespace && isInMiddle) {
-          acc++
-        }
-        return acc
-      }, 1)
-
+      // Initialize counters
       let lineCharIndex = 0
       let lineWordIndex = 0
+      let lineWordCount = 0
       let lineCharCount = line.chars.length
+
+      if (this.recordedAttributes.lineWordCount) {
+        lineWordCount = line.chars.reduce((acc, value, index) => {
+          const isWhitespace = whitespace.test(value.definition.char)
+          const isInMiddle = index !== 0 && index !== line.chars.length - 1
+          if (isWhitespace && isInMiddle) {
+            acc++
+          }
+          return acc
+        }, 1)
+      }
 
       for (let i = 0; i < line.chars.length; i++) {
         const glyph = line.chars[i].definition
-
-        // each letter is a quad. axis bottom left
-        const w = glyph.width * this.textScale
-        const h = glyph.height * this.textScale
-
-        x = line.chars[i].x
 
         // If space, don't add to geometry
         if (whitespace.test(glyph.char)) {
@@ -329,6 +332,12 @@ export class TextGeometry extends BufferGeometry {
           lineWordIndex++
           continue
         }
+
+        // Each letter is a quad. axis bottom left
+        const w = glyph.width * this.textScale
+        const h = glyph.height * this.textScale
+
+        x = line.chars[i].x
 
         // Apply char sprite offsets
         x += glyph.xoffset * this.textScale
@@ -475,32 +484,32 @@ export class TextGeometry extends BufferGeometry {
   computeBoundingBox() {
     if (!this.boundingBox) this.boundingBox = new Box3()
 
-    this.boundingBox.min.setZ(0)
-    this.boundingBox.max.setZ(0)
+    this.boundingBox.min.z = 0
+    this.boundingBox.max.z = 0
 
     if (this.alignX === 'center') {
-      this.boundingBox.min.setX(-this.computedWidth / 2)
-      this.boundingBox.max.setX(this.computedWidth / 2)
+      this.boundingBox.min.x = -this.computedWidth / 2
+      this.boundingBox.max.x = this.computedWidth / 2
     }
     if (this.alignX === 'left') {
-      this.boundingBox.min.setX(0)
-      this.boundingBox.max.setX(this.computedWidth)
+      this.boundingBox.min.x = 0
+      this.boundingBox.max.x = this.computedWidth
     }
     if (this.alignX === 'right') {
-      this.boundingBox.min.setX(-this.computedWidth)
-      this.boundingBox.max.setX(0)
+      this.boundingBox.min.x = -this.computedWidth
+      this.boundingBox.max.x = 0
     }
     if (this.alignY === 'center') {
-      this.boundingBox.min.setY(-this.computedHeight / 2)
-      this.boundingBox.max.setY(this.computedHeight / 2)
+      this.boundingBox.min.y = -this.computedHeight / 2
+      this.boundingBox.max.y = this.computedHeight / 2
     }
     if (this.alignY === 'bottom') {
-      this.boundingBox.min.setY(0)
-      this.boundingBox.max.setY(this.computedHeight)
+      this.boundingBox.min.y = 0
+      this.boundingBox.max.y = this.computedHeight
     }
     if (this.alignY === 'top') {
-      this.boundingBox.min.setY(-this.computedHeight)
-      this.boundingBox.max.setY(0)
+      this.boundingBox.min.y = -this.computedHeight
+      this.boundingBox.max.y = 0
     }
 
     if (
@@ -531,9 +540,5 @@ export class TextGeometry extends BufferGeometry {
   updateText(text) {
     this.text = text
     this.computeGeometry()
-  }
-
-  get hasCharPosition() {
-    return !!this.attributes.charPosition
   }
 }
