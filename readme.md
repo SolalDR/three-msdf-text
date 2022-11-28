@@ -100,8 +100,8 @@ Depending on the alignX and alignY properties, the geometry is constructed with 
 
 Please refer to the [contribution guidelines](https://github.com/SolalDR/three-msdf-text/blob/master/CONTRIBUTE.md) for details.
 
-## License
+## Unlicense
 
-This library is licensed under the [MIT license](LICENSE).
+This library is [unlicensed](LICENSE).
 
-The original code that this library is based on, was written by [mrdoob](https://mrdoob.com) and the [three.js contributors](https://github.com/mrdoob/three.js/graphs/contributors) and is licensed under the [MIT license](https://github.com/mrdoob/three.js/blob/master/LICENSE).
+The original code that this library was written by [ogl contributors](https://github.com/oframe/ogl/graphs/contributors) and is [unlicensed](https://unlicense.org).
