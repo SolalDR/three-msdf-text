@@ -16,7 +16,7 @@ const template = `
     </head>
     <body>
       <canvas id="canvas"></canvas>
-      <script defer src="./{{name}}.js"></script>
+        <script defer src="./{{name}}.js"></script>
     </body>
   </html>
 `
@@ -40,11 +40,6 @@ const demosConfig = demos.map((key) => {
     ],
   }
 })
-
-fs.copyFileSync(
-  __dirname + `/public/demo/basic.html`,
-  __dirname + `/public/demo/index.html`,
-)
 
 export default [
   {
