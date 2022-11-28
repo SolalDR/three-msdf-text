@@ -32,7 +32,6 @@ const demosConfig = demos.map((key) => {
   return {
     input: `demo/src/${key}.js`,
     output: {
-      name: 'howLongUntilLunch',
       file: `public/demo/${key}.js`,
       format: 'umd',
     },
@@ -49,7 +48,6 @@ export default [
   {
     input: `demo/src/basic.js`,
     output: {
-      name: 'howLongUntilLunch',
       file: `public/demo/index.js`,
       format: 'umd',
     },
@@ -58,12 +56,15 @@ export default [
       isProduction && filesize(),
       copy({
         targets: [
-          { src: 'demo/public/**/*', dest: 'public/demo/' },
           {
-            src: 'demo/public/basic.html',
+            src: 'demo/public/**/*',
             dest: 'public/demo/',
-            rename: 'index.html',
           },
+          // {
+          //   src: 'demo/public/basic.html',
+          //   dest: 'public/demo/',
+          //   rename: 'index.html',
+          // },
         ],
       }),
       !isProduction &&
