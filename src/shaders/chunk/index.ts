@@ -1,10 +1,10 @@
 import { ShaderChunk } from 'three'
-import msdftestFragment from './msdftest_fragment.glsl'
-import msdftestParsFragment from './msdftest_pars_fragment.glsl'
-import msdfcharUvVertex from './msdf_glyph_uv_vertex.glsl'
-import msdfcharUvParsVertex from './msdf_glyph_uv_pars_vertex.glsl'
+import msdfAlphatestFragment from './msdf_alphatest_fragment.glsl'
+import msdfAlphatestParsFragment from './msdf_alphatest_pars_fragment.glsl'
+import msdfCharUvVertex from './msdf_char_uv_vertex.glsl'
+import msdfCharUvParsVertex from './msdf_char_uv_pars_vertex.glsl'
 
-ShaderChunk.msdftest_fragment = msdftestFragment
-ShaderChunk.msdftest_pars_fragment = msdftestParsFragment
-ShaderChunk.msdf_glyph_uv_vertex = msdfcharUvVertex
-ShaderChunk.msdf_glyph_uv_pars_vertex = msdfcharUvParsVertex
+ShaderChunk.msdf_alphatest_fragment = msdfAlphatestFragment
+ShaderChunk.msdf_alphatest_pars_fragment = msdfAlphatestParsFragment
+ShaderChunk.msdf_char_uv_vertex = msdfCharUvVertex
+ShaderChunk.msdf_char_uv_pars_vertex = msdfCharUvParsVertex

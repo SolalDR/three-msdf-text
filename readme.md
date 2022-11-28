@@ -19,6 +19,8 @@ Features:
 - [x] No dependencies (except for three.js obviously)
 - [ ] Multipage atlas
 - [ ] Geometry subdivision
+- [ ] Tabulation
+- [ ] Background quad
 
 ## How to use
 
