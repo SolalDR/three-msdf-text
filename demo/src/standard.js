@@ -1,5 +1,5 @@
 import { TextGeometry, extendMSDFMaterial } from '../../src/index'
-import { initGUI, initScene } from './index'
+import { initGUI, initScene } from './utils/common'
 
 async function init() {
   const { renderer, camera, scene, font, atlas, loader } = await initScene()
@@ -37,7 +37,7 @@ async function init() {
   )
 
   const mesh = new THREE.Mesh(geometry, material)
-  initGUI(mesh)
+  initGUI(mesh, scene)
 
   scene.add(mesh)
 

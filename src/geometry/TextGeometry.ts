@@ -1,5 +1,5 @@
+import { BufferGeometry, BufferAttribute, Box3 } from 'three'
 import type { Line } from './types'
-import { BufferGeometry, BufferAttribute } from 'three'
 import { Font, FontChar, FontDefinition } from '../font'
 import { newline, whitespace } from '../utils/regexp'
 import { getKernPairOffset } from './getKernPairOffset'
@@ -48,7 +48,7 @@ export class TextGeometry extends BufferGeometry {
   height: number | 'auto'
   alignX: AlignX
   alignY: AlignY
-  size: number
+  _size: number
   letterSpacing: number
   lineHeight: number
   wordSpacing: number
@@ -69,7 +69,7 @@ export class TextGeometry extends BufferGeometry {
     alignY = 'top',
     size = 1,
     letterSpacing = 0,
-    lineHeight = 1.4,
+    lineHeight = 1,
     wordSpacing = 0,
     wordBreak = false,
     lineBreak = true,
@@ -88,8 +88,6 @@ export class TextGeometry extends BufferGeometry {
     this.wordSpacing = wordSpacing
     this.wordBreak = wordBreak
     this.lineBreak = lineBreak
-    this.textScale =
-      this.size / (this.font.common.baseline || this.font.common.base)
 
     this.recordedAttributes = (
       Object.keys(attributesDefinitions) as Attribute[]
@@ -101,6 +99,19 @@ export class TextGeometry extends BufferGeometry {
     }, {} as Record<Attribute, boolean>)
 
     this.computeGeometry()
+  }
+
+  get size() {
+    return this._size
+  }
+
+  set size(value: number) {
+    this._size = value
+    this.textScale =
+      this._size /
+      (this.font.common.lineHeight ||
+        this.font.common.baseline ||
+        this.font.common.base)
   }
 
   private computeGeometry() {
@@ -163,18 +174,17 @@ export class TextGeometry extends BufferGeometry {
 
       const char = this.text[cursor]
 
+      if (char.match(newline)) {
+        cursor++
+        line = newLine()
+        continue
+      }
+
       // Skip whitespace at start of line
       if (!line.width && whitespace.test(char)) {
         cursor++
         wordCursor = cursor
         wordWidth = 0
-        continue
-      }
-
-      // If newline char, skip to next line
-      if (newline.test(char)) {
-        cursor++
-        line = newLine()
         continue
       }
 
@@ -266,13 +276,14 @@ export class TextGeometry extends BufferGeometry {
     const cW = this.computedWidth
     const tW = this.width !== 'auto' ? this.width : cW
     const tH = this.height !== 'auto' ? this.height : cH
+    const lineOffset = (this.lineHeight * this.size - this.size) / 2
 
-    let charIndex = 0,
-      wordIndex = 0
+    let charIndex = 0
+    let wordIndex = 0
 
     // For all fonts tested, a little offset was needed to be right on the baseline, hence 0.07.
-    let y = 0.07 * this.size,
-      x = 0
+    let y = -lineOffset
+    let x = 0
     let yUnit, xUnit
 
     let offsetHeight = 0
@@ -298,6 +309,7 @@ export class TextGeometry extends BufferGeometry {
         }
         return acc
       }, 1)
+
       let lineCharIndex = 0
       let lineWordIndex = 0
       let lineCharCount = line.chars.length
@@ -455,6 +467,36 @@ export class TextGeometry extends BufferGeometry {
       }
 
       y -= this.size * this.lineHeight
+    }
+
+    this.computeBoundingBox()
+  }
+
+  computeBoundingBox() {
+    if (!this.boundingBox) this.boundingBox = new Box3()
+    if (this.alignX === 'center') {
+      this.boundingBox.min.setX(-this.computedWidth / 2)
+      this.boundingBox.max.setX(this.computedWidth / 2)
+    }
+    if (this.alignX === 'left') {
+      this.boundingBox.min.setX(0)
+      this.boundingBox.max.setX(this.computedWidth)
+    }
+    if (this.alignX === 'right') {
+      this.boundingBox.min.setX(-this.computedWidth)
+      this.boundingBox.max.setX(0)
+    }
+    if (this.alignY === 'center') {
+      this.boundingBox.min.setY(-this.computedHeight / 2)
+      this.boundingBox.max.setY(this.computedHeight / 2)
+    }
+    if (this.alignY === 'bottom') {
+      this.boundingBox.min.setY(0)
+      this.boundingBox.max.setY(this.computedHeight)
+    }
+    if (this.alignY === 'top') {
+      this.boundingBox.min.setY(-this.computedHeight)
+      this.boundingBox.max.setY(0)
     }
   }
 

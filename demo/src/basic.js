@@ -1,5 +1,5 @@
 import { TextGeometry, extendMSDFMaterial } from '../../build/index.esm'
-import { initGUI, initScene } from './index'
+import { initGUI, initScene } from './utils/common'
 
 async function init() {
   const { renderer, camera, scene, font, atlas, loader } = await initScene()
@@ -38,36 +38,14 @@ async function init() {
       opacity: 1,
       transparent: true,
       side: THREE.DoubleSide,
-      map: map,
     }),
     {
       atlas,
     },
   )
 
-  pane.addInput(state, 'text').on('change', (event) => {
-    geometry.updateText(event.value)
-  })
-
-  window.addEventListener('keypress', (e) => {
-    if (e.key.length > 1) return
-    if (['Backspace', 'Enter'].indexOf(e.key) > -1) return
-    state.text += e.key
-    geometry.updateText(state.text)
-  })
-
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Backspace') {
-      state.text = state.text.slice(0, -1)
-    }
-    if (e.key === 'Enter') {
-      state.text += '\n'
-    }
-    geometry.updateText(state.text)
-  })
-
   const mesh = new THREE.Mesh(geometry, material)
-  initGUI(mesh)
+  initGUI(mesh, scene)
 
   scene.add(mesh)
 

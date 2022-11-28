@@ -2,6 +2,10 @@
   varying vec2 vCharUv;
   uniform sampler2D uAtlas;
 
+  #ifdef USE_THRESHOLD
+    uniform float uThreshold;
+  #endif
+
   #ifdef USE_STROKE
     uniform float uStrokeOuterWidth;
     uniform float uStrokeInnerWidth;
