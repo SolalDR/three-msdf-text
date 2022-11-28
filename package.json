@@ -1,7 +1,7 @@
 {
   "name": "@solaldr/three-msdf-text",
   "repository": "SolalDR/three-msdf-text",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "main": "build/index.js",
   "module": "build/index.esm.js",
   "browser": "build/index.umd.js",
