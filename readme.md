@@ -7,20 +7,15 @@
 [Documentation](https://solaldr.github.io/three-msdf-text/public/docs/) -
 [Repository](https://github.com/SolalDR/three-msdf-text)
 
-⚠️ Experimental : This library is still in development.
-
 Provide geometry and material for MSDF (multi-channel signed distance fields) in [THREE.js](https://threejs.org).<br>
 
 Features:
 
-- [x] Geometry with multiple attributes
-- [x] Native support of all THREE.js Material
-- [x] Typescript support
-- [x] No dependencies (except for three.js obviously)
-- [ ] Multipage atlas
-- [ ] Geometry subdivision
-- [ ] Tabulation
-- [ ] Background quad
+- Many advanced attributes
+- Support all THREE.js Material
+- Typescript
+- No dependencies
+- Geometry subdivision
 
 ## How to use
 

@@ -9,6 +9,7 @@ export type Attribute = keyof typeof attributesDefinitions
 export type AlignX = 'left' | 'right' | 'center'
 export type AlignY = 'top' | 'bottom' | 'center'
 export type ExtraAttributeOptions = Partial<Record<Attribute, boolean>>
+
 export interface TextGeometryOptions extends ExtraAttributeOptions {
   font?: Font | FontDefinition
   text?: string
@@ -95,7 +96,7 @@ export class TextGeometry extends BufferGeometry {
     this.computeGeometry()
   }
 
-  get size() {
+  get size(): number {
     return this._size
   }
 
@@ -161,7 +162,7 @@ export class TextGeometry extends BufferGeometry {
     this.populateBuffers(lines)
   }
 
-  computeLayout() {
+  computeLayout(): Line[] {
     const lines = []
     const maxTimes = 100
     let cursor = 0
@@ -534,7 +535,7 @@ export class TextGeometry extends BufferGeometry {
    * Update text and re-compute geometry (like creating new Text)
    */
 
-  updateText(text) {
+  updateText(text: string) {
     this.text = text
     this.computeGeometry()
   }
