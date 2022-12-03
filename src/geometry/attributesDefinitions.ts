@@ -1,0 +1,16 @@
+export const attributesDefinitions = {
+  id: { size: 1, default: true },
+  position: { size: 3, default: true },
+  charUv: { size: 2, default: true },
+  uv: { size: 2, default: false },
+  normal: { size: 3, default: false },
+  charPosition: { size: 3, default: false },
+  lineIndex: { size: 1, default: false },
+  charIndex: { size: 1, default: false },
+  charSize: { size: 2, default: false },
+  wordIndex: { size: 1, default: false },
+  lineCharIndex: { size: 1, default: false },
+  lineWordIndex: { size: 1, default: false },
+  lineWordCount: { size: 1, default: false },
+  lineCharCount: { size: 1, default: false },
+}

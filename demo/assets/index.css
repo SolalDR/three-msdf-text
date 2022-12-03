@@ -22,3 +22,12 @@ body {
   color: var(--tp-label-foreground-color, rgba(187, 188, 196, 0.7));
   font-family: var(--font-family);
 }
+
+code {
+  position: absolute;
+  bottom: 10px;
+  left: 20px;
+  z-index: 1;
+  color: white;
+  width: 300px;
+}

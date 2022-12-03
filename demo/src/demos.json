@@ -28,5 +28,11 @@
 		"output": "shader.html",
 		"slug": "shader",
 		"description": "MSDF Shader material example."
+	},
+	{
+		"name": "Attributes",
+		"output": "attributes.html",
+		"slug": "attributes",
+		"description": "Extended attributes raycast example."
 	}
 ]

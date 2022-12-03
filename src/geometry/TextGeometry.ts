@@ -3,30 +3,12 @@ import type { Line } from './types'
 import { Font, FontChar, FontDefinition } from '../font'
 import { newline, whitespace } from '../utils/regexp'
 import { getKernPairOffset } from './getKernPairOffset'
+import { attributesDefinitions } from './attributesDefinitions'
 
-const attributesDefinitions = {
-  id: { size: 1, default: true },
-  position: { size: 3, default: true },
-  charUv: { size: 2, default: true },
-  uv: { size: 2, default: false },
-  normal: { size: 3, default: false },
-  charPosition: { size: 3, default: false },
-  lineIndex: { size: 1, default: false },
-  charIndex: { size: 1, default: false },
-  charSize: { size: 2, default: false },
-  wordIndex: { size: 1, default: false },
-  lineCharIndex: { size: 1, default: false },
-  lineWordIndex: { size: 1, default: false },
-  lineWordCount: { size: 1, default: false },
-  lineCharCount: { size: 1, default: false },
-}
-
-type Attribute = keyof typeof attributesDefinitions
-type AlignX = 'left' | 'right' | 'center'
-type AlignY = 'top' | 'bottom' | 'center'
-
+export type Attribute = keyof typeof attributesDefinitions
+export type AlignX = 'left' | 'right' | 'center'
+export type AlignY = 'top' | 'bottom' | 'center'
 export type ExtraAttributeOptions = Partial<Record<Attribute, boolean>>
-
 export interface TextGeometryOptions extends ExtraAttributeOptions {
   font?: Font | FontDefinition
   text?: string
@@ -234,7 +216,7 @@ export class TextGeometry extends BufferGeometry {
         wordWidth += kern
       }
 
-      // // add char to line
+      // add char to line
       line.chars.push({
         definition: charDef,
         x: line.width,
@@ -242,10 +224,11 @@ export class TextGeometry extends BufferGeometry {
         lineIndex: line.index,
         lineCharIndex: line.chars.length,
       })
+
       // // calculate advance for next glyph
       let advance = 0
 
-      // // If whitespace, update location of current word for line breaks
+      // If whitespace, update location of current word for line breaks
       if (whitespace.test(char)) {
         wordCursor = cursor
         wordWidth = 0
@@ -304,7 +287,18 @@ export class TextGeometry extends BufferGeometry {
     const icc = this.charGeometry.index.count // indexes per char count
     const charUvs = this.charGeometry.attributes.uv.array
 
-    const populateAttrSize2 = (attr, xMin, yMin, xMax, yMax, offset) => {
+    /**
+     * Interpolation methods for subdivied geometries
+     */
+
+    const populateAttrSize2 = (
+      attr: string,
+      xMin: number,
+      yMin: number,
+      xMax: number,
+      yMax: number,
+      offset: number,
+    ) => {
       const target = this.attributes[attr].array as Array<number>
       for (let i = 0, l = vcc * 2; i < l; i += 2) {
         target[offset + i] = charUvs[i] * (xMax - xMin) + xMin
@@ -312,32 +306,40 @@ export class TextGeometry extends BufferGeometry {
       }
     }
 
-    const populateAttrSize3 = (attr, xMin, yMin, xMax, yMax, offset, z = 0) => {
+    const populateAttrSize3 = (
+      attr: string,
+      xMin: number,
+      yMin: number,
+      xMax: number,
+      yMax: number,
+      offset: number,
+      defaultZ: number = 0,
+    ) => {
       const target = this.attributes[attr].array as Array<number>
       for (let i = 0, j = 0, l = vcc * 3; i < l; i += 3, j += 2) {
         target[offset + i] = charUvs[j] * (xMax - xMin) + xMin
         target[offset + i + 1] = charUvs[j + 1] * (yMax - yMin) + yMin
-        target[offset + i + 2] = z
+        target[offset + i + 2] = defaultZ
       }
     }
 
     const texW = this.font.common.scaleW
     const texH = this.font.common.scaleH
-
     const cH = this.computedHeight
     const cW = this.computedWidth
     const tW = this.width !== 'auto' ? this.width : cW
     const tH = this.height !== 'auto' ? this.height : cH
-
     let y = -(this.lineHeight * this.size - this.size) / 2
     let x = 0
-    let yUnit, xUnit
+    let uy, ux
+    let offsetHeight = 0
 
+    // Initialize counters
     let charIndex = 0
     let wordIndex = 0
     let j = 0
-    let offsetHeight = 0
 
+    // Hanlde Y alignment
     if (this.alignY === 'center') {
       offsetHeight = this.computedHeight / 2
     } else if (this.alignY === 'bottom') {
@@ -386,13 +388,13 @@ export class TextGeometry extends BufferGeometry {
         x += glyph.xoffset * this.textScale
         y -= glyph.yoffset * this.textScale
 
-        xUnit = x
-        yUnit = y - offsetHeight
+        ux = x
+        uy = y - offsetHeight
         if (this.alignX === 'center') {
-          xUnit = tW * 0.5 - line.width * 0.5 + x
+          ux = tW * 0.5 - line.width * 0.5 + x
           x -= line.width * 0.5
         } else if (this.alignX === 'right') {
-          xUnit = tW - line.width + x
+          ux = tW - line.width + x
           x -= line.width
         }
 
@@ -416,80 +418,50 @@ export class TextGeometry extends BufferGeometry {
         if (this.recordedAttributes.uv) {
           populateAttrSize2(
             'uv',
-            xUnit / tW,
-            1 - (yUnit - h) / -tH,
-            (xUnit + w) / tW,
-            1 - yUnit / -tH,
+            ux / tW,
+            1 - (uy - h) / -tH,
+            (ux + w) / tW,
+            1 - uy / -tH,
             offset2,
           )
         }
 
         if (this.recordedAttributes.charPosition) {
-          populateAttrSize3('charPosition', x, y - h, x + w, y, offset3)
-          // ;(this.attributes.charPosition.array as Float32Array).set(
-          //   [x, y - h, 0, x, y, 0, x + w, y - h, 0, x + w, y, 0],
-          //   j * 4 * 3,
-          // )
+          populateAttrSize3(
+            'charPosition',
+            x + w / 2,
+            y - h / 2,
+            x + w / 2,
+            y - h / 2,
+            offset3,
+          )
         }
-
-        // if (this.recordedAttributes.charPosition) {
-        //   ;(this.attributes.charPosition.array as Float32Array).set(
-        //     [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
-        //     j * 4 * 3,
-        //   )
-        // }
 
         if (this.recordedAttributes.normal) {
           populateAttrSize3('normal', 0, 0, 0, 0, offset3, 1)
-          // ;(this.attributes.normal.array as Float32Array).set(
-          //   [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
-          //   j * 4 * 3,
-          // )
         }
 
         if (this.recordedAttributes.charSize) {
           populateAttrSize2('charSize', w, h, w, h, offset2)
         }
 
-        if (this.recordedAttributes.lineIndex) {
-          for (let i = 0; i < vcc; i++) {
-            this.recordedAttributes.lineIndex[j * 4 + i] = lineIndex
-          }
+        const counters = {
+          lineIndex,
+          charIndex,
+          wordIndex,
+          lineCharIndex,
+          lineWordIndex,
+          lineWordCount,
+          lineCharCount,
         }
 
-        if (this.recordedAttributes.charIndex) {
-          for (let i = 0; i < vcc; i++) {
-            this.recordedAttributes.charIndex[j * 4 + i] = charIndex
-          }
-        }
-
-        if (this.recordedAttributes.wordIndex) {
-          for (let i = 0; i < vcc; i++) {
-            this.recordedAttributes.wordIndex[j * 4 + i] = wordIndex
-          }
-        }
-
-        if (this.recordedAttributes.lineCharIndex) {
-          for (let i = 0; i < vcc; i++) {
-            this.recordedAttributes.lineCharIndex[j * 4 + i] = lineCharIndex
-          }
-        }
-
-        if (this.recordedAttributes.lineWordIndex) {
-          for (let i = 0; i < vcc; i++) {
-            this.recordedAttributes.lineWordIndex[j * 4 + i] = lineWordIndex
-          }
-        }
-
-        if (this.recordedAttributes.lineWordCount) {
-          for (let i = 0; i < vcc; i++) {
-            this.recordedAttributes.lineWordCount[j * 4 + i] = lineWordCount
-          }
-        }
-
-        if (this.recordedAttributes.lineCharCount) {
-          for (let i = 0; i < vcc; i++) {
-            this.recordedAttributes.lineCharCount[j * 4 + i] = lineCharCount
+        for (let key in counters) {
+          if (this.recordedAttributes[key]) {
+            for (let i = 0; i < vcc; i++) {
+              ;(this.attributes[key].array as unknown as Array<Number>)[
+                j * 4 + i
+              ] = counters[key]
+            }
           }
         }
 
@@ -500,6 +472,7 @@ export class TextGeometry extends BufferGeometry {
         lineCharIndex++
       }
 
+      wordIndex++
       y -= this.size * this.lineHeight
     }
 

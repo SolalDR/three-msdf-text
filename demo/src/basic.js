@@ -11,7 +11,7 @@ async function init() {
 
   const geometry = new TextGeometry({
     font: font,
-    text: 'A',
+    text: 'Type here',
     size: 5,
     alignY: 'center',
     alignX: 'center',
@@ -31,15 +31,6 @@ async function init() {
       atlas,
     },
   )
-
-  setTimeout(() => {
-    console.time('bruh')
-    const lines = geometry.computeLayout()
-    for (let i = 0; i < 1000000; i++) {
-      geometry.populateBuffers(lines)
-    }
-    console.timeEnd('bruh')
-  }, 1000)
 
   const mesh = new THREE.Mesh(geometry, material)
   initGUI(mesh, scene)
