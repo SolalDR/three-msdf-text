@@ -11,11 +11,13 @@ async function init() {
 
   const geometry = new TextGeometry({
     font: font,
-    text: 'Type here',
+    text: 'A',
     size: 5,
     alignY: 'center',
     alignX: 'center',
     lineHeight: 1,
+    widthSegments: 1,
+    heightSegments: 1,
   })
 
   let material = extendMSDFMaterial(
@@ -29,6 +31,15 @@ async function init() {
       atlas,
     },
   )
+
+  setTimeout(() => {
+    console.time('bruh')
+    const lines = geometry.computeLayout()
+    for (let i = 0; i < 1000000; i++) {
+      geometry.populateBuffers(lines)
+    }
+    console.timeEnd('bruh')
+  }, 1000)
 
   const mesh = new THREE.Mesh(geometry, material)
   initGUI(mesh, scene)

@@ -19,19 +19,19 @@ async function init() {
   })
 
   const vertexShader = `
-    #include <msdf_glyph_uv_pars_vertex>
+    #include <msdf_char_uv_pars_vertex>
     void main() {
-      #include <msdf_glyph_uv_vertex>
+      #include <msdf_char_uv_vertex>
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   `
 
   const fragmentShader = `
-    #include <msdftest_pars_fragment>
+    #include <msdf_alphatest_pars_fragment>
 
     void main() {
       vec4 diffuseColor = vec4(1.0, 1.0, 1.0, 1.0);
-      #include <msdftest_fragment>
+      #include <msdf_alphatest_fragment>
 
       gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
     }

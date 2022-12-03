@@ -1,4 +1,4 @@
-import { BufferGeometry, BufferAttribute, Box3 } from 'three'
+import { BufferGeometry, BufferAttribute, Box3, PlaneGeometry } from 'three'
 import type { Line } from './types'
 import { Font, FontChar, FontDefinition } from '../font'
 import { newline, whitespace } from '../utils/regexp'
@@ -40,10 +40,13 @@ export interface TextGeometryOptions extends ExtraAttributeOptions {
   wordSpacing?: number
   wordBreak?: boolean
   lineBreak?: boolean
+  widthSegments?: number
+  heightSegments?: number
 }
 
 export class TextGeometry extends BufferGeometry {
   private textScale: number
+  private charGeometry?: PlaneGeometry
 
   font: Font
   text: string
@@ -75,6 +78,8 @@ export class TextGeometry extends BufferGeometry {
     wordSpacing = 0,
     wordBreak = false,
     lineBreak = true,
+    widthSegments = 1,
+    heightSegments = 1,
     ...attributes
   }: TextGeometryOptions = {}) {
     super()
@@ -90,6 +95,7 @@ export class TextGeometry extends BufferGeometry {
     this.wordSpacing = wordSpacing
     this.wordBreak = wordBreak
     this.lineBreak = lineBreak
+    this.charGeometry = new PlaneGeometry(1, 1, widthSegments, heightSegments)
 
     this.recordedAttributes = (
       Object.keys(attributesDefinitions) as Attribute[]
@@ -116,12 +122,17 @@ export class TextGeometry extends BufferGeometry {
         this.font.common.base)
   }
 
+  /**
+   * Allocate attributes buffer, compute geometry indexes
+   */
   private computeGeometry() {
-    const attr = this.recordedAttributes
-
     // Strip spaces and newlines to get actual character length for buffers
     const chars = this.text.replace(/[ \n]/g, '')
-    const numChars = chars.length
+    const attr = this.recordedAttributes
+    const cc = chars.length // char count
+    const vcc = this.charGeometry.attributes.position.count // vertices per char count
+    const icc = this.charGeometry.index.count // indexes per char count
+    const indexArray = new Uint32Array(cc * icc)
 
     // Create output buffers
     Object.keys(attr).forEach((name) => {
@@ -129,15 +140,25 @@ export class TextGeometry extends BufferGeometry {
         const size = attributesDefinitions[name].size
         this.setAttribute(
           name,
-          new BufferAttribute(new Float32Array(numChars * 4 * size), size),
+          new BufferAttribute(new Float32Array(cc * vcc * size), size),
         )
       }
     })
 
-    const indexArray = new Uint32Array(numChars * 6)
-
     // Set values for buffers that don't require calculation
-    for (let i = 0; i < numChars; i++) {
+    for (let i = 0; i < cc; i++) {
+      if (this.charGeometry) {
+        const ids = new Array(vcc)
+        for (let j = 0, l = ids.length; j < l; j++) ids[j] = i
+        ;(this.attributes.id.array as Float32Array).set(ids, i * vcc)
+
+        const indexes = new Array(icc)
+        for (let j = 0, l = indexes.length; j < l; j++)
+          indexes[j] = i * vcc + this.charGeometry.index.array[j]
+        indexArray.set(indexes, i * icc)
+        continue
+      }
+
       // Unique id for each char
       ;(this.attributes.id.array as Float32Array).set([i, i, i, i], i * 4)
 
@@ -150,7 +171,8 @@ export class TextGeometry extends BufferGeometry {
 
     this.setIndex(Array.from(indexArray))
 
-    this.computeLayout()
+    const lines = this.computeLayout()
+    this.populateBuffers(lines)
   }
 
   computeLayout() {
@@ -274,10 +296,31 @@ export class TextGeometry extends BufferGeometry {
     this.computedHeight = this.lineCount * this.size * this.lineHeight
     this.computedWidth = Math.max(...lines.map((line) => line.width))
 
-    this.populateBuffers(lines)
+    return lines
   }
 
   populateBuffers(lines: Line[]) {
+    const vcc = this.charGeometry.attributes.position.count // vertices per char count
+    const icc = this.charGeometry.index.count // indexes per char count
+    const charUvs = this.charGeometry.attributes.uv.array
+
+    const populateAttrSize2 = (attr, xMin, yMin, xMax, yMax, offset) => {
+      const target = this.attributes[attr].array as Array<number>
+      for (let i = 0, l = vcc * 2; i < l; i += 2) {
+        target[offset + i] = charUvs[i] * (xMax - xMin) + xMin
+        target[offset + i + 1] = charUvs[i + 1] * (yMax - yMin) + yMin
+      }
+    }
+
+    const populateAttrSize3 = (attr, xMin, yMin, xMax, yMax, offset, z = 0) => {
+      const target = this.attributes[attr].array as Array<number>
+      for (let i = 0, j = 0, l = vcc * 3; i < l; i += 3, j += 2) {
+        target[offset + i] = charUvs[j] * (xMax - xMin) + xMin
+        target[offset + i + 1] = charUvs[j + 1] * (yMax - yMin) + yMin
+        target[offset + i + 2] = z
+      }
+    }
+
     const texW = this.font.common.scaleW
     const texH = this.font.common.scaleH
 
@@ -357,115 +400,97 @@ export class TextGeometry extends BufferGeometry {
         const uw = glyph.width / texW
         const v = 1.0 - glyph.y / texH
         const vh = glyph.height / texH
+        const offset3 = j * vcc * 3
+        const offset2 = j * vcc * 2
 
         /**
          * Populate needed attributes buffers
          */
-
-        ;(this.attributes.position.array as Float32Array).set(
-          [x, y - h, 0, x, y, 0, x + w, y - h, 0, x + w, y, 0],
-          j * 4 * 3,
-        )
-        ;(this.attributes.charUv.array as Float32Array).set(
-          [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
-          j * 4 * 2,
-        )
+        populateAttrSize3('position', x, y - h, x + w, y, offset3)
+        populateAttrSize2('charUv', u, v - vh, u + uw, v, offset2)
 
         /**
          * Populate optionals attributes buffers
          */
 
         if (this.recordedAttributes.uv) {
-          ;(this.attributes.uv.array as Float32Array).set(
-            [
-              xUnit / tW,
-              1 - (yUnit - h) / -tH,
-              xUnit / tW,
-              1 - yUnit / -tH,
-              (xUnit + w) / tW,
-              1 - (yUnit - h) / -tH,
-              (xUnit + w) / tW,
-              1 - yUnit / -tH,
-            ],
-            j * 4 * 2,
+          populateAttrSize2(
+            'uv',
+            xUnit / tW,
+            1 - (yUnit - h) / -tH,
+            (xUnit + w) / tW,
+            1 - yUnit / -tH,
+            offset2,
           )
         }
 
         if (this.recordedAttributes.charPosition) {
-          ;(this.attributes.charPosition.array as Float32Array).set(
-            [x, y - h, 0, x, y, 0, x + w, y - h, 0, x + w, y, 0],
-            j * 4 * 3,
-          )
+          populateAttrSize3('charPosition', x, y - h, x + w, y, offset3)
+          // ;(this.attributes.charPosition.array as Float32Array).set(
+          //   [x, y - h, 0, x, y, 0, x + w, y - h, 0, x + w, y, 0],
+          //   j * 4 * 3,
+          // )
         }
 
-        if (this.recordedAttributes.charPosition) {
-          ;(this.attributes.charPosition.array as Float32Array).set(
-            [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
-            j * 4 * 3,
-          )
-        }
+        // if (this.recordedAttributes.charPosition) {
+        //   ;(this.attributes.charPosition.array as Float32Array).set(
+        //     [u, v - vh, u, v, u + uw, v - vh, u + uw, v],
+        //     j * 4 * 3,
+        //   )
+        // }
 
         if (this.recordedAttributes.normal) {
-          ;(this.attributes.normal.array as Float32Array).set(
-            [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
-            j * 4 * 3,
-          )
-        }
-
-        if (this.recordedAttributes.lineIndex) {
-          ;(this.attributes.lineIndex.array as Float32Array).set(
-            [lineIndex, lineIndex, lineIndex, lineIndex],
-            j * 4,
-          )
-        }
-
-        if (this.recordedAttributes.charIndex) {
-          ;(this.attributes.lineIndex.array as Float32Array).set(
-            [charIndex, charIndex, charIndex, charIndex],
-            j * 4,
-          )
-        }
-
-        if (this.recordedAttributes.wordIndex) {
-          ;(this.attributes.lineIndex.array as Float32Array).set(
-            [wordIndex, wordIndex, wordIndex, wordIndex],
-            j * 4,
-          )
-        }
-
-        if (this.recordedAttributes.lineCharIndex) {
-          ;(this.attributes.lineIndex.array as Float32Array).set(
-            [lineCharIndex, lineCharIndex, lineCharIndex, lineCharIndex],
-            j * 4,
-          )
-        }
-
-        if (this.recordedAttributes.lineWordIndex) {
-          ;(this.attributes.lineIndex.array as Float32Array).set(
-            [lineWordIndex, lineWordIndex, lineWordIndex, lineWordIndex],
-            j * 4,
-          )
-        }
-
-        if (this.recordedAttributes.lineWordCount) {
-          ;(this.attributes.lineIndex.array as Float32Array).set(
-            [lineWordCount, lineWordCount, lineWordCount, lineWordCount],
-            j * 4,
-          )
-        }
-
-        if (this.recordedAttributes.lineCharCount) {
-          ;(this.attributes.lineIndex.array as Float32Array).set(
-            [lineCharCount, lineCharCount, lineCharCount, lineCharCount],
-            j * 4,
-          )
+          populateAttrSize3('normal', 0, 0, 0, 0, offset3, 1)
+          // ;(this.attributes.normal.array as Float32Array).set(
+          //   [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
+          //   j * 4 * 3,
+          // )
         }
 
         if (this.recordedAttributes.charSize) {
-          ;(this.attributes.charSize.array as Float32Array).set(
-            [w, h, w, h, w, h, w, h],
-            j * 4 * 2,
-          )
+          populateAttrSize2('charSize', w, h, w, h, offset2)
+        }
+
+        if (this.recordedAttributes.lineIndex) {
+          for (let i = 0; i < vcc; i++) {
+            this.recordedAttributes.lineIndex[j * 4 + i] = lineIndex
+          }
+        }
+
+        if (this.recordedAttributes.charIndex) {
+          for (let i = 0; i < vcc; i++) {
+            this.recordedAttributes.charIndex[j * 4 + i] = charIndex
+          }
+        }
+
+        if (this.recordedAttributes.wordIndex) {
+          for (let i = 0; i < vcc; i++) {
+            this.recordedAttributes.wordIndex[j * 4 + i] = wordIndex
+          }
+        }
+
+        if (this.recordedAttributes.lineCharIndex) {
+          for (let i = 0; i < vcc; i++) {
+            this.recordedAttributes.lineCharIndex[j * 4 + i] = lineCharIndex
+          }
+        }
+
+        if (this.recordedAttributes.lineWordIndex) {
+          for (let i = 0; i < vcc; i++) {
+            this.recordedAttributes.lineWordIndex[j * 4 + i] = lineWordIndex
+          }
+        }
+
+        if (this.recordedAttributes.lineWordCount) {
+          for (let i = 0; i < vcc; i++) {
+            this.recordedAttributes.lineWordCount[j * 4 + i] = lineWordCount
+          }
+        }
+
+        if (this.recordedAttributes.lineCharCount) {
+          for (let i = 0; i < vcc; i++) {
+            this.recordedAttributes.lineCharCount[j * 4 + i] = lineCharCount
+          }
         }
 
         // Reset cursor to baseline
