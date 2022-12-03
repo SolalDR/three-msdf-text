@@ -1,7 +1,7 @@
 import { BufferGeometry, BufferAttribute, Box3, PlaneGeometry } from 'three'
 import type { Line } from './types'
 import { Font, FontChar, FontDefinition } from '../font'
-import { newline, whitespace } from '../utils/regexp'
+import { newline, whitespace, tabulation } from '../utils/regexp'
 import { getKernPairOffset } from './getKernPairOffset'
 import { attributesDefinitions } from './attributesDefinitions'
 
@@ -18,6 +18,7 @@ export interface TextGeometryOptions extends ExtraAttributeOptions {
   alignY?: AlignY
   size?: number
   letterSpacing?: number
+  tabSize?: number
   lineHeight?: number
   wordSpacing?: number
   wordBreak?: boolean
@@ -38,6 +39,7 @@ export class TextGeometry extends BufferGeometry {
   alignY: AlignY
   _size: number
   letterSpacing: number
+  tabSize: number
   lineHeight: number
   wordSpacing: number
   wordBreak: boolean
@@ -56,6 +58,7 @@ export class TextGeometry extends BufferGeometry {
     alignY = 'top',
     size = 1,
     letterSpacing = 0,
+    tabSize = 4,
     lineHeight = 1,
     wordSpacing = 0,
     wordBreak = false,
@@ -73,6 +76,7 @@ export class TextGeometry extends BufferGeometry {
     this.alignY = alignY
     this.size = size
     this.letterSpacing = letterSpacing
+    this.tabSize = tabSize
     this.lineHeight = lineHeight
     this.wordSpacing = wordSpacing
     this.wordBreak = wordBreak
@@ -159,11 +163,12 @@ export class TextGeometry extends BufferGeometry {
 
   computeLayout() {
     const lines = []
+    const maxTimes = 100
     let cursor = 0
-
     let wordCursor = 0
     let wordWidth = 0
     let line = newLine()
+    let count = 0
 
     function newLine(): Line {
       const line = {
@@ -177,12 +182,10 @@ export class TextGeometry extends BufferGeometry {
       return line
     }
 
-    const maxTimes = 100
-    let count = 0
     while (cursor < this.text.length && count < maxTimes) {
-      count++
-
       const char = this.text[cursor]
+      let advance = 0
+      count++
 
       // Detect \n char
       if (newline.test(char)) {
@@ -192,7 +195,7 @@ export class TextGeometry extends BufferGeometry {
       }
 
       // Skip whitespace at start of line
-      if (!line.width && whitespace.test(char)) {
+      if (!line.width && whitespace.test(char) && !tabulation.test(char)) {
         cursor++
         wordCursor = cursor
         wordWidth = 0
@@ -202,9 +205,7 @@ export class TextGeometry extends BufferGeometry {
       const charDef: FontChar =
         this.font.indexedChar[char] || this.font.indexedChar[' ']
 
-      if (!charDef) {
-        throw new Error(`Missing glyph "${char}"`)
-      }
+      if (!charDef) throw new Error(`Missing glyph "${char}"`)
 
       // Find any applicable kern pairs
       if (line.chars.length && charDef) {
@@ -225,23 +226,21 @@ export class TextGeometry extends BufferGeometry {
         lineCharIndex: line.chars.length,
       })
 
-      // // calculate advance for next glyph
-      let advance = 0
-
-      // If whitespace, update location of current word for line breaks
-      if (whitespace.test(char)) {
+      // Handle whitespace, tabulation and others text advances
+      if (tabulation.test(char)) {
         wordCursor = cursor
         wordWidth = 0
-
-        // Add wordspacing
+        advance +=
+          this.font.indexedChar['o'].width * this.textScale * this.tabSize
+      } else if (whitespace.test(char)) {
+        wordCursor = cursor
+        wordWidth = 0
         advance += this.wordSpacing * this.size
       } else {
-        // Add letterspacing
         advance += this.letterSpacing * this.size
       }
 
       advance += charDef.xadvance * this.textScale
-
       line.width += advance
       wordWidth += advance
 
@@ -335,8 +334,15 @@ export class TextGeometry extends BufferGeometry {
     let offsetHeight = 0
 
     // Initialize counters
-    let charIndex = 0
-    let wordIndex = 0
+    const c = {
+      lineIndex: 0,
+      charIndex: 0,
+      wordIndex: 0,
+      lineCharIndex: 0,
+      lineWordIndex: 0,
+      lineWordCount: 0,
+      lineCharCount: 0,
+    }
     let j = 0
 
     // Hanlde Y alignment
@@ -347,18 +353,16 @@ export class TextGeometry extends BufferGeometry {
     }
     y += offsetHeight
 
-    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-      const line = lines[lineIndex]
+    for (c.lineIndex = 0; c.lineIndex < lines.length; c.lineIndex++) {
+      const line = lines[c.lineIndex]
       const normalizedY = y - offsetHeight
 
       // Initialize counters
-      let lineCharIndex = 0
-      let lineWordIndex = 0
-      let lineWordCount = 0
-      let lineCharCount = line.chars.length
+      c.lineCharIndex = c.lineWordIndex = c.lineWordCount = 0
+      c.lineCharCount = line.chars.length
 
       if (this.recordedAttributes.lineWordCount) {
-        lineWordCount = line.chars.reduce((acc, value, index) => {
+        c.lineWordCount = line.chars.reduce((acc, value, index) => {
           const isWhitespace = whitespace.test(value.definition.char)
           const isInMiddle = index !== 0 && index !== line.chars.length - 1
           if (isWhitespace && isInMiddle) {
@@ -373,8 +377,8 @@ export class TextGeometry extends BufferGeometry {
 
         // If space, don't add to geometry
         if (whitespace.test(glyph.char)) {
-          wordIndex++
-          lineWordIndex++
+          c.wordIndex++
+          c.lineWordIndex++
           continue
         }
 
@@ -406,13 +410,14 @@ export class TextGeometry extends BufferGeometry {
         const offset2 = j * vcc * 2
 
         /**
-         * Populate needed attributes buffers
+         * Populate needed attributes
          */
+
         populateAttrSize3('position', x, y - h, x + w, y, offset3)
         populateAttrSize2('charUv', u, v - vh, u + uw, v, offset2)
 
         /**
-         * Populate optionals attributes buffers
+         * Populate optionals attributes
          */
 
         if (this.recordedAttributes.uv) {
@@ -445,22 +450,16 @@ export class TextGeometry extends BufferGeometry {
           populateAttrSize2('charSize', w, h, w, h, offset2)
         }
 
-        const counters = {
-          lineIndex,
-          charIndex,
-          wordIndex,
-          lineCharIndex,
-          lineWordIndex,
-          lineWordCount,
-          lineCharCount,
-        }
+        /**
+         * Populate counter attributes
+         */
 
-        for (let key in counters) {
+        for (let key in c) {
           if (this.recordedAttributes[key]) {
             for (let i = 0; i < vcc; i++) {
               ;(this.attributes[key].array as unknown as Array<Number>)[
                 j * 4 + i
-              ] = counters[key]
+              ] = c[key]
             }
           }
         }
@@ -468,11 +467,11 @@ export class TextGeometry extends BufferGeometry {
         // Reset cursor to baseline
         y += glyph.yoffset * this.textScale
         j++
-        charIndex++
-        lineCharIndex++
+        c.charIndex++
+        c.lineCharIndex++
       }
 
-      wordIndex++
+      c.wordIndex++
       y -= this.size * this.lineHeight
     }
 

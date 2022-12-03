@@ -11,7 +11,7 @@ async function init() {
 
   const geometry = new TextGeometry({
     font: font,
-    text: 'Lorem ipsum\n dolor sit amet',
+    text: 'Hover me\n please',
     size: 4,
     alignY: 'center',
     alignX: 'center',
