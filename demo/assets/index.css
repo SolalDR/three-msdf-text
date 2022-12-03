@@ -25,9 +25,12 @@ body {
 
 code {
   position: absolute;
-  bottom: 10px;
-  left: 20px;
+  top: 10px;
+  left: 8px;
   z-index: 1;
-  color: white;
-  width: 300px;
+  color: var(--tp-label-foreground-color, rgba(187, 188, 196, 0.7));
+  width: 230px;
+  background: #28292e;
+  padding: 10px;
+  border-radius: 7px;
 }
