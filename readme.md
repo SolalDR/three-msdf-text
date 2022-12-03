@@ -90,12 +90,6 @@ You may also want to force `width` and `height` values to correctly interpolate 
 
 <img src="https://solaldr.github.io/three-msdf-text/public/demo/assets/docs/layout.svg" />
 
-## alignX and alignY
-
-Depending on the alignX and alignY properties, the geometry is constructed with a different origin.
-
-<img src="https://solaldr.github.io/three-msdf-text/public/demo/assets/docs/alignment.svg" />
-
 ## Contributing
 
 Please refer to the [contribution guidelines](https://github.com/SolalDR/three-msdf-text/blob/master/CONTRIBUTE.md) for details.
