@@ -134,7 +134,7 @@ function initGeometryGUI() {
       },
     })
     .on('change', () => {
-      mesh.geometry.alignX = state.alignX
+      mesh.geometry.layout.alignX = state.alignX
       updateGeometry()
     })
 
@@ -147,7 +147,7 @@ function initGeometryGUI() {
       },
     })
     .on('change', () => {
-      mesh.geometry.alignY = state.alignY
+      mesh.geometry.layout.alignY = state.alignY
       updateGeometry()
     })
 
@@ -157,7 +157,7 @@ function initGeometryGUI() {
       max: 20,
     })
     .on('change', (e) => {
-      mesh.geometry.size = state.size
+      mesh.geometry.layout.size = state.size
       updateGeometry()
     })
 
@@ -167,7 +167,7 @@ function initGeometryGUI() {
       max: 1,
     })
     .on('change', (e) => {
-      mesh.geometry.letterSpacing = state.letterSpacing
+      mesh.geometry.layout.letterSpacing = state.letterSpacing
       updateGeometry()
     })
 
@@ -177,7 +177,7 @@ function initGeometryGUI() {
       max: 2,
     })
     .on('change', (e) => {
-      mesh.geometry.lineHeight = state.lineHeight
+      mesh.geometry.layout.lineHeight = state.lineHeight
       updateGeometry()
     })
 
@@ -187,17 +187,17 @@ function initGeometryGUI() {
       max: 1,
     })
     .on('change', (e) => {
-      mesh.geometry.wordSpacing = state.wordSpacing
+      mesh.geometry.layout.wordSpacing = state.wordSpacing
       updateGeometry()
     })
 
   geoPane.addInput(state, 'wordBreak').on('change', (e) => {
-    mesh.geometry.wordBreak = state.wordBreak
+    mesh.geometry.layout.wordBreak = state.wordBreak
     updateGeometry()
   })
 
   geoPane.addInput(state, 'lineBreak').on('change', (e) => {
-    mesh.geometry.lineBreak = state.lineBreak
+    mesh.geometry.layout.lineBreak = state.lineBreak
     updateGeometry()
   })
 }
