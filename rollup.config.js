@@ -1,9 +1,5 @@
-import rollupEsmConfig from './rollup/rollup.esm.config';
-import rollupUmdConfig from './rollup/rollup.umd.config';
-import rollupDemoConfig from './rollup/rollup.demo.config';
+import rollupEsmConfig from './config/rollup/rollup.esm.config'
+import rollupUmdConfig from './config/rollup/rollup.umd.config'
+import rollupDemoConfig from './config/rollup/rollup.demo.config'
 
-export default [
-  rollupEsmConfig,
-  rollupUmdConfig,
-	...rollupDemoConfig
-];
+export default [rollupEsmConfig, rollupUmdConfig, ...rollupDemoConfig]

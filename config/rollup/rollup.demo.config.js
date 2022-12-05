@@ -4,7 +4,7 @@ import copy from 'rollup-plugin-copy'
 import serve from 'rollup-plugin-serve'
 import externalGlobals from 'rollup-plugin-external-globals'
 import { baseConfig, isProduction } from './rollup.base.config'
-import demos from '../demo/src/demos.json'
+import demos from '../../demo/src/demos.json'
 
 const template = `
   <html>

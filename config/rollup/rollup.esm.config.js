@@ -1,5 +1,5 @@
 import filesize from 'rollup-plugin-filesize'
-import pkg from '../package.json'
+import pkg from '../../package.json'
 import { baseConfig, isProduction, input } from './rollup.base.config'
 
 /**

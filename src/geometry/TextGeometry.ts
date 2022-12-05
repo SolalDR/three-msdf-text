@@ -1,8 +1,8 @@
 import { BufferGeometry, BufferAttribute, Box3, PlaneGeometry } from 'three'
 import type { Line, AlignY, AlignX } from './types'
 import type { FontDefinition, Font } from '../font'
-import { attributesDefinitions } from './attributesDefinitions'
-import { LayoutOptions, Layout } from './Layout'
+import { attributesDefinitions } from './const'
+import { LayoutOptions, TextLayout } from './TextLayout'
 import { newline, whitespace } from '../utils/regexp'
 
 export type Attribute = keyof typeof attributesDefinitions
@@ -28,7 +28,7 @@ export interface TextGeometryOptions extends ExtraAttributeOptions {
 
 export class TextGeometry extends BufferGeometry {
   private charGeometry?: PlaneGeometry
-  layout: Layout
+  layout: TextLayout
   computedWidth: number
   computedHeight: number
   lineCount: number
@@ -40,7 +40,7 @@ export class TextGeometry extends BufferGeometry {
     ...options
   }: TextGeometryOptions = {}) {
     super()
-    this.layout = new Layout(options)
+    this.layout = new TextLayout(options)
     this.charGeometry = new PlaneGeometry(1, 1, widthSegments, heightSegments)
 
     this.recordedAttributes = (

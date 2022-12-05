@@ -1,2 +1,5 @@
 export { FontChar } from './FontChar'
 export { FontDefinition } from './FontDefinition'
+export { DistanceField } from './DistanceField'
+export { FontCommon } from './Common'
+export { Kerning } from './Kerning'

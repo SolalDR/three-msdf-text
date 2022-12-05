@@ -1,7 +1,7 @@
 import type { FontChar, FontDefinition } from '../font'
-import { Font } from '../font'
 import type { Line, AlignY, AlignX } from './types'
-import { getKernPairOffset } from './getKernPairOffset'
+import { Font } from '../font'
+import { getKernPairOffset } from './utils'
 import { newline, tabulation, whitespace } from '../utils/regexp'
 
 export interface LayoutOptions {
@@ -20,7 +20,7 @@ export interface LayoutOptions {
   lineBreak?: boolean
 }
 
-export class Layout {
+export class TextLayout {
   font: Font
   text: string
   width: number | 'auto'
