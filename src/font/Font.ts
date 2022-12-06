@@ -1,5 +1,5 @@
 import { FontCommon } from './types/Common'
-import { DistanceField } from './types/DistanceFIeld'
+import { DistanceField } from './types/DistanceField'
 import { FontChar } from './types/FontChar'
 import { FontDefinition } from './types/FontDefinition'
 import { Kerning } from './types/Kerning'
