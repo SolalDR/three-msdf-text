@@ -49,6 +49,8 @@ function defineUniformProperty<M extends THREE.Material>(
   })
 }
 
+let cacheIndex = 0
+
 /**
  * Extend a THREE.Material with MSDF support
  */
@@ -63,6 +65,9 @@ export function extendMSDFMaterial<M extends THREE.Material>(
   }: MSDFMaterialOptions = {},
 ): ExtendedMSDFMaterial<M> {
   const m: ExtendMSDFMaterial<M> = material
+
+  cacheIndex++
+  material.customProgramCacheKey = () => String(cacheIndex)
 
   const state = {
     userCallback: null,

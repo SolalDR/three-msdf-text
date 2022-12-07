@@ -24,8 +24,8 @@ Features:
   const textureLoader = new THREE.TextureLoader()
   const fontLoader = new THREE.FontLoader()
 
-  const atlas = textureLoader.loadAsync('./font/font.png')
-  const font = fontLoader.loadAsync('./font/font.fnt')
+  const atlas = await textureLoader.loadAsync('./font/font.png')
+  const font = await fontLoader.loadAsync('./font/font.fnt')
 
   const geometry = new TextGeometry({
     font,
