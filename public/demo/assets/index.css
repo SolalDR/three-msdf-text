@@ -1,0 +1,36 @@
+#canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+body {
+  background: black;
+}
+
+.codeBtn {
+  bottom: 20px;
+  position: fixed;
+  right: 20px;
+  text-decoration: none;
+  background: #28292e;
+  width: 50px;
+  height: 50px;
+  text-align: center;
+  line-height: 50px;
+  border-radius: 100%;
+  color: var(--tp-label-foreground-color, rgba(187, 188, 196, 0.7));
+  font-family: var(--font-family);
+}
+
+code {
+  position: absolute;
+  top: 10px;
+  left: 8px;
+  z-index: 1;
+  color: var(--tp-label-foreground-color, rgba(187, 188, 196, 0.7));
+  width: 230px;
+  background: #28292e;
+  padding: 10px;
+  border-radius: 7px;
+}
