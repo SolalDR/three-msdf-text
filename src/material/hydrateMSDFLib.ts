@@ -1,4 +1,4 @@
-import { Shader } from '@/shaders/types/Shader'
+import type { Shader } from '@/shaders/types/Shader'
 
 export function hydrateMSDFLib(shader: Shader) {
   shader.fragmentShader = shader.fragmentShader.replace(

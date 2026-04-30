@@ -1,14 +1,11 @@
+// @ts-nocheck
+import { createRequire } from 'module'
 import filesize from 'rollup-plugin-filesize'
-import pkg from '../../package.json'
-import { baseConfig, isProduction, input } from './rollup.base.config'
+import { baseConfig, isProduction, input } from './rollup.base.config.js'
 
-/**
- * Output:
- * - index.d.ts
- * - index.js
- * - index.esm.js
- * - index.esm.d.ts
- */
+const require = createRequire(import.meta.url)
+const pkg = require('../../package.json')
+
 export default {
   input,
   output: [

@@ -3,6 +3,7 @@
  * @link https://solaldr.github.io/three-msdf-text/public/demo/attributes.html
  */
 
+import { FrontSide, Mesh, MeshBasicMaterial, Raycaster, Vector2 } from 'three'
 import { TextGeometry, extendMSDFMaterial } from '../../build/index.esm'
 import { initGUI, initScene } from './utils/common'
 
@@ -32,11 +33,11 @@ async function init() {
   })
 
   let material = extendMSDFMaterial(
-    new THREE.MeshBasicMaterial({
+    new MeshBasicMaterial({
       color: 0xffffff,
       opacity: 1,
       transparent: true,
-      side: THREE.FrontSide,
+      side: FrontSide,
     }),
     {
       atlas,
@@ -85,11 +86,11 @@ async function init() {
 
   updateMonitor()
 
-  const mesh = new THREE.Mesh(geometry, material)
+  const mesh = new Mesh(geometry, material)
   initGUI(mesh, scene)
 
-  const raycaster = new THREE.Raycaster()
-  const normalizedMouse = new THREE.Vector2()
+  const raycaster = new Raycaster()
+  const normalizedMouse = new Vector2()
 
   window.addEventListener('mousemove', (e) => {
     normalizedMouse.set(

@@ -1,5 +1,7 @@
 {
+  "exclude": ["build", "node_modules"],
   "compilerOptions": {
+    "skipLibCheck": true,
     "experimentalDecorators": true,
     "outDir": "dist",
     "target": "esnext",

@@ -3,6 +3,7 @@
  * @link https://solaldr.github.io/three-msdf-text/public/demo/index.html
  */
 
+import { DoubleSide, Mesh, MeshBasicMaterial } from 'three'
 import { TextGeometry, extendMSDFMaterial } from '../../build/index.esm'
 import { initGUI, initScene } from './utils/common'
 
@@ -21,18 +22,18 @@ async function init() {
   })
 
   let material = extendMSDFMaterial(
-    new THREE.MeshBasicMaterial({
+    new MeshBasicMaterial({
       color: 0xffffff,
       opacity: 1,
       transparent: true,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
     }),
     {
       atlas,
     },
   )
 
-  const mesh = new THREE.Mesh(geometry, material)
+  const mesh = new Mesh(geometry, material)
   initGUI(mesh, scene)
 
   scene.add(mesh)

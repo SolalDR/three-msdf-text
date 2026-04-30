@@ -1,16 +1,16 @@
-import type { WebGLRenderer, MeshBasicMaterialParameters } from 'three'
+import type { WebGLRenderer, MeshBasicMaterialParameters, Texture, Material } from 'three'
 import type { MSDFShader, Shader } from '@/shaders/types/Shader'
 import { hydrateMSDFLib } from './hydrateMSDFLib'
 
 export interface MSDFMaterialOptions extends MeshBasicMaterialParameters {
-  atlas?: THREE.Texture
+  atlas?: Texture
   threshold?: number
   stroke?: boolean
   strokeInnerWidth?: number
   strokeOuterWidth?: number
 }
 
-type ExtendMSDFMaterial<M extends THREE.Material> = Omit<M, 'userData'> & {
+type ExtendMSDFMaterial<M extends Material> = Omit<M, 'userData'> & {
   userData: Record<string, any> & { shader: MSDFShader }
   strokeOuterWidth: number
   strokeInnerWidth: number
@@ -21,7 +21,7 @@ type ExtendMSDFMaterial<M extends THREE.Material> = Omit<M, 'userData'> & {
   _threshold: number
 }
 
-type ExtendedMSDFMaterial<M extends THREE.Material> = Omit<
+type ExtendedMSDFMaterial<M extends Material> = Omit<
   ExtendMSDFMaterial<M>,
   '_strokeOuterWidth' | '_strokeInnerWidth' | '_threshold'
 >
@@ -29,7 +29,7 @@ type ExtendedMSDFMaterial<M extends THREE.Material> = Omit<
 /**
  * Define a new uniform and his acessors to manipulate uniforms
  */
-function defineUniformProperty<M extends THREE.Material>(
+function defineUniformProperty<M extends Material>(
   material: ExtendMSDFMaterial<M>,
   name: string,
   initialValue,
@@ -54,7 +54,7 @@ let cacheIndex = 0
 /**
  * Extend a THREE.Material with MSDF support
  */
-export function extendMSDFMaterial<M extends THREE.Material>(
+export function extendMSDFMaterial<M extends Material>(
   material,
   {
     atlas,

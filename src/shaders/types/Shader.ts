@@ -1,4 +1,4 @@
-import { IUniform } from 'three'
+import type { IUniform, Texture } from 'three'
 
 export interface Shader {
   defines?: { [key: string]: string }
@@ -10,7 +10,7 @@ export interface Shader {
 export interface MSDFShader extends Shader {
   uniforms: {
     [uniform: string]: IUniform
-    uAtlas: { value: THREE.Texture }
+    uAtlas: { value: Texture }
     uThreshold?: { value: number }
     uStrokeOuterWidth?: { value: number }
     uStrokeInnerWidth?: { value: number }

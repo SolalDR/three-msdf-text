@@ -3,6 +3,7 @@
  * @link https://solaldr.github.io/three-msdf-text/public/demo/shader.html
  */
 
+import { Mesh, ShaderMaterial } from 'three'
 import { TextGeometry, extendMSDFMaterial } from '../../build/index.esm'
 import { initGUI, initScene } from './utils/common'
 
@@ -37,7 +38,7 @@ async function init() {
     }
   `
 
-  let material = new THREE.ShaderMaterial({
+  let material = new ShaderMaterial({
     vertexShader,
     fragmentShader,
     uniforms: {
@@ -49,7 +50,7 @@ async function init() {
     },
   })
 
-  const mesh = new THREE.Mesh(geometry, material)
+  const mesh = new Mesh(geometry, material)
   initGUI(mesh, scene, {
     material: false,
   })

@@ -1,3 +1,12 @@
+import {
+  Scene,
+  TextureLoader,
+  WebGLRenderer,
+  PerspectiveCamera,
+  Vector3,
+  AxesHelper,
+  BoxHelper,
+} from 'three'
 import { Font } from '../../../build/index.esm'
 import fontsData from '../../assets/font/Roboto-Regular-msdf.json'
 import list from '../demos.json'
@@ -60,16 +69,16 @@ function onResize() {
 
 export async function initScene() {
   canvas = document.querySelector('#canvas')
-  scene = new THREE.Scene()
-  loader = new THREE.TextureLoader()
+  scene = new Scene()
+  loader = new TextureLoader()
   atlas = await loader.loadAsync('./assets/font/Roboto-Regular.png')
   font = new Font(fontsData)
-  renderer = new THREE.WebGLRenderer({
+  renderer = new WebGLRenderer({
     canvas,
   })
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio))
 
-  camera = new THREE.PerspectiveCamera(
+  camera = new PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
     0.1,
@@ -77,7 +86,7 @@ export async function initScene() {
   )
 
   camera.position.set(0, 0, 15)
-  camera.lookAt(new THREE.Vector3())
+  camera.lookAt(new Vector3())
 
   onResize()
 
@@ -100,11 +109,11 @@ function initDebugGUI() {
     title: 'Debug',
   })
 
-  helper = new THREE.AxesHelper(10)
+  helper = new AxesHelper(10)
   helper.visible = state.debug.axes
   scene.add(helper)
 
-  boundingBox = new THREE.BoxHelper(mesh, 0xffff00)
+  boundingBox = new BoxHelper(mesh, 0xffff00)
   boundingBox.visible = state.debug.boundingBox
   scene.add(boundingBox)
 
