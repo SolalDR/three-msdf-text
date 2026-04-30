@@ -6,6 +6,5 @@
   "excludeExternals": true,
   "excludeProtected": true,
   "excludePrivate": true,
-  "media": "media",
   "out": "public/docs"
 }

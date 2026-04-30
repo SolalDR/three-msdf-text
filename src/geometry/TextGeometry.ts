@@ -1,11 +1,26 @@
 import { BufferGeometry, BufferAttribute, Box3, PlaneGeometry } from 'three'
-import type { Line, AlignY, AlignX } from './types'
+import type { AlignY, AlignX } from './types'
 import type { FontDefinition, Font } from '../font'
 import { attributesDefinitions } from './const'
-import { LayoutOptions, TextLayout } from './TextLayout'
-import { newline, whitespace } from '../utils/regexp'
+import { TextLayout } from './TextLayout'
+import { whitespace } from '../utils/regexp'
 
-export type Attribute = keyof typeof attributesDefinitions
+export type Attribute = 
+  | 'id'
+  | 'position'
+  | 'charUv'
+  | 'uv'
+  | 'normal'
+  | 'charPosition'
+  | 'lineIndex'
+  | 'charIndex'
+  | 'charSize'
+  | 'wordIndex'
+  | 'lineCharIndex'
+  | 'lineWordIndex'
+  | 'lineWordCount'
+  | 'lineCharCount';
+
 export type ExtraAttributeOptions = Partial<Record<Attribute, boolean>>
 
 export interface TextGeometryOptions extends ExtraAttributeOptions {
@@ -134,7 +149,7 @@ export class TextGeometry extends BufferGeometry {
       yMax: number,
       offset: number,
     ) => {
-      const target = this.attributes[attr].array as Array<number>
+      const target = this.attributes[attr].array as unknown as number[]
       for (let i = 0, l = vcc * 2; i < l; i += 2) {
         target[offset + i] = charUvs[i] * (xMax - xMin) + xMin
         target[offset + i + 1] = charUvs[i + 1] * (yMax - yMin) + yMin
@@ -149,9 +164,9 @@ export class TextGeometry extends BufferGeometry {
       xMax: number,
       yMax: number,
       offset: number,
-      defaultZ: number = 0,
+      defaultZ = 0,
     ) => {
-      const target = this.attributes[attr].array as Array<number>
+      const target = this.attributes[attr].array as unknown as number[]
       for (let i = 0, j = 0, l = vcc * 3; i < l; i += 3, j += 2) {
         target[offset + i] = charUvs[j] * (xMax - xMin) + xMin
         target[offset + i + 1] = charUvs[j + 1] * (yMax - yMin) + yMin
@@ -294,7 +309,7 @@ export class TextGeometry extends BufferGeometry {
         for (let key in c) {
           if (this.recordedAttributes[key]) {
             for (let i = 0; i < vcc; i++) {
-              ;(this.attributes[key].array as unknown as Array<Number>)[
+              ;(this.attributes[key].array as unknown as number[])[
                 vertexIndex * 4
               ] = c[key]
             }

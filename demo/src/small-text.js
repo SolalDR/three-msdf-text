@@ -3,7 +3,8 @@
  * @link https://solaldr.github.io/three-msdf-text/public/demo/small-text.html
  */
 
-import { TextGeometry, extendMSDFMaterial } from '../../src/index'
+import { DoubleSide, Mesh, MeshBasicMaterial } from 'three'
+import { TextGeometry, extendMSDFMaterial } from '../../build/index.esm'
 import { initGUI, initScene } from './utils/common'
 
 async function init() {
@@ -31,11 +32,11 @@ async function init() {
   })
 
   let material = extendMSDFMaterial(
-    new THREE.MeshBasicMaterial({
+    new MeshBasicMaterial({
       color: 0xffffff,
       opacity: 1,
       transparent: true,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
     }),
     {
       atlas,
@@ -43,7 +44,7 @@ async function init() {
     },
   )
 
-  const mesh = new THREE.Mesh(geometry, material)
+  const mesh = new Mesh(geometry, material)
   mesh.position.x = -13
   initGUI(mesh, scene)
 

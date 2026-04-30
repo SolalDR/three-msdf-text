@@ -3,11 +3,12 @@
  * @link https://solaldr.github.io/three-msdf-text/public/demo/stroke.html
  */
 
-import { TextGeometry, extendMSDFMaterial } from '../../src/index'
+import { DoubleSide, Mesh, MeshBasicMaterial } from 'three'
+import { TextGeometry, extendMSDFMaterial } from '../../build/index.esm'
 import { initGUI, initScene } from './utils/common'
 
 async function init() {
-  const { renderer, camera, scene, font, atlas, loader } = await initScene()
+  const { renderer, camera, scene, font, atlas } = await initScene()
 
   const geometry = new TextGeometry({
     font: font,
@@ -20,11 +21,11 @@ async function init() {
   })
 
   let material = extendMSDFMaterial(
-    new THREE.MeshBasicMaterial({
+    new MeshBasicMaterial({
       color: 0xffffff,
       opacity: 1,
       transparent: true,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
     }),
     {
       atlas,
@@ -46,7 +47,7 @@ async function init() {
     label: 'innerWidth',
   })
 
-  const mesh = new THREE.Mesh(geometry, material)
+  const mesh = new Mesh(geometry, material)
   initGUI(mesh, scene)
 
   scene.add(mesh)

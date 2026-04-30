@@ -1,16 +1,28 @@
+// @ts-nocheck
+import { createRequire } from 'module'
 import fs from 'fs'
-import fsExtra from 'fs-extra'
 import copy from 'rollup-plugin-copy'
 import serve from 'rollup-plugin-serve'
-import externalGlobals from 'rollup-plugin-external-globals'
-import { baseConfig, isProduction } from './rollup.base.config'
-import demos from '../../demo/src/demos.json'
+import { baseConfig, isProduction } from './rollup.base.config.js'
+import resolve from '@rollup/plugin-node-resolve'
+
+// Demo files are plain JS — skip the TypeScript plugin and peer-deps-external
+// (we bundle three.js directly since three 0.184+ has no UMD/global build)
+const demoBaseConfig = baseConfig.filter(
+  (p) =>
+    p &&
+    typeof p === 'object' &&
+    p.name !== 'typescript' &&
+    p.name !== 'peer-deps-external',
+)
+
+const require = createRequire(import.meta.url)
+const demos = require('../../demo/src/demos.json')
 
 const template = `
   <html>
     <head>
       <title>Example {{name}} | three-msdf-text</title>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.147.0/three.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/tweakpane@3.1.0/dist/tweakpane.min.js"></script>
       <link rel="stylesheet" href="./assets/index.css" />
     </head>
@@ -27,8 +39,8 @@ const template = `
 /**
  * Create a /public/demo if not exist
  */
-if (!fs.existsSync(__dirname + `/public/demo`)) {
-  fs.mkdirSync(__dirname + `/public/demo`, { recursive: true })
+if (!fs.existsSync(`public/demo`)) {
+  fs.mkdirSync(`public/demo`, { recursive: true })
 }
 
 /**
@@ -36,7 +48,7 @@ if (!fs.existsSync(__dirname + `/public/demo`)) {
  */
 const demosConfig = demos.map((demo) => {
   let demoTemplate = template.replaceAll('{{name}}', demo.slug)
-  fs.writeFileSync(__dirname + `/public/demo/${demo.output}`, demoTemplate)
+  fs.writeFileSync(`public/demo/${demo.output}`, demoTemplate)
 
   return {
     input: `demo/src/${demo.slug}.js`,
@@ -45,10 +57,8 @@ const demosConfig = demos.map((demo) => {
       format: 'umd',
     },
     plugins: [
-      ...baseConfig,
-      externalGlobals({
-        three: 'THREE',
-      }),
+      ...demoBaseConfig,
+      resolve(),
     ],
   }
 })
@@ -61,7 +71,8 @@ export default [
       format: 'umd',
     },
     plugins: [
-      ...baseConfig,
+      ...demoBaseConfig,
+      resolve(),
       copy({
         targets: [
           {
@@ -72,7 +83,7 @@ export default [
         flatten: false,
       }),
       !isProduction &&
-        serve('') &&
+        serve('public/demo') &&
         console.log('Server listening: localhost:10001'),
     ],
   },
